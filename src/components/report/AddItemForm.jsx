@@ -310,10 +310,10 @@ export default function AddItemForm({ onAddItem }) {
             // CORREÇÃO 3: Lógica de exibição do texto
             // Se estiver no Manual (useAI é false), mostra "Adicionar Item" direto, ignorando o timer
             (useAI && cooldownTimer > 0) ? (
-                <span className="flex items-center justify-center font-mono">
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin text-amber-500" />
-                    Aguarde {cooldownTimer}s para usar a IA...
-                </span>
+            <span key={cooldownTimer} className="flex items-center justify-center font-mono">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin text-amber-500" />
+                Aguarde {cooldownTimer}s para usar a IA...
+            </span>
             ) : useAI ? (
                 <span className="flex items-center justify-center">
                     <Sparkles className="w-4 h-4 mr-2" />
