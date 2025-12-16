@@ -9,7 +9,7 @@
     "server": "cd server && node index.js",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "app": "concurrently \"npm run server\" \"npm run client\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "vite build && electron-builder",
+    "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
