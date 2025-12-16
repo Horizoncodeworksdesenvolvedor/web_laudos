@@ -23,7 +23,7 @@ export default function AddItemForm({ onAddItem }) {
   // ESTADO PARA CONTROLAR O MODO (IA ou MANUAL)
   const [useAI, setUseAI] = useState(true);
 
-  // Cronometro de 1m de espera para IA
+  // Cronometro de 1m de espera para IA)
   const [cooldownTimer, setCooldownTimer] = useState(0);
   React.useEffect(() => {
     if (cooldownTimer > 0) {
@@ -67,7 +67,6 @@ export default function AddItemForm({ onAddItem }) {
     }
   };
 
-  // --- CHAMADA CORRETA PARA A NOVA IA (GEMINI) ---
   const generateTechnicalText = async (informalText) => {
     try {
       const response = await base44.integrations.Core.InvokeLLM({
@@ -76,7 +75,7 @@ export default function AddItemForm({ onAddItem }) {
       return response.technical_text;
     } catch (error) {
       console.error("Erro na IA:", error);
-      return null; 
+      return null; // <--- Importante: Retorna nulo para ativar o timer
     }
   };
 
@@ -97,31 +96,35 @@ export default function AddItemForm({ onAddItem }) {
             setDescription(technicalText);
             setUseAI(false); // Sucesso: Vai para modo manual
         } else {
+            // Falha: Ativa o modo de espera por 60 segundos
             setCooldownTimer(60); 
+            // Opcional: Pode remover o alert se quiser, pois o botão já vai avisar
         }
         
         setIsProcessing(false);
         return; 
     }
 
+    // Se for Manual (ou já tiver revisado), aí sim cria o item
     const newItem = {
       id: crypto.randomUUID(),
       location,
       title,
       informal_description: '', 
-      technical_description: description,
+      technical_description: description, // Usa o texto que está na tela agora
       risk_level: riskLevel,
       photos: photos
     };
 
     onAddItem(newItem);
 
+    // Limpa tudo
     setLocation('');
     setTitle('');
     setDescription('');
     setRiskLevel('regular');
     setPhotos([]);
-    setUseAI(true);
+    setUseAI(true); // Volta para IA para o próximo
     setIsProcessing(false);
   };
 
@@ -155,11 +158,12 @@ export default function AddItemForm({ onAddItem }) {
             </div>
         </div>
 
-        {/* Descrição e IA */}
+        {/* SELETOR DE MODO E DESCRIÇÃO */}
         <div>
             <div className="flex items-center justify-between mb-3">
                 <Label className="text-slate-700 font-medium block">Descrição do Problema</Label>
                 
+                {/* Botões de Alternância (Toggle) */}
                 <div className="flex bg-slate-100 p-1 rounded-lg">
                     <button
                         type="button"
@@ -190,8 +194,8 @@ export default function AddItemForm({ onAddItem }) {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder={useAI 
-                            ? "Descreva o que você viu... A IA vai transformar em texto técnico." 
-                            : "Digite a descrição técnica final."
+                            ? "Descreva o que você viu de forma simples... A IA vai transformar em texto técnico." 
+                            : "Digite a descrição técnica final exatamente como deve aparecer no laudo."
                         }
                         className="min-h-[120px] flex-1 bg-transparent border-0 focus:ring-0 resize-none"
                     />
@@ -202,16 +206,19 @@ export default function AddItemForm({ onAddItem }) {
                     )}
                 </div>
                 
+                {/* Rodapé do Input */}
                 <div className="px-3 pb-2 pt-1 flex items-center gap-2 text-xs border-t border-dashed border-slate-200/50 mt-1">
                     {useAI ? (
                         <>
                             <Bot className="w-3.5 h-3.5 text-indigo-500" />
-                            <span className="text-indigo-600 font-medium">Modo Inteligente</span>
+                            <span className="text-indigo-600 font-medium">Modo Inteligente:</span>
+                            <span className="text-slate-500">Escreva rápido, a IA formata para você.</span>
                         </>
                     ) : (
                         <>
                             <PenTool className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="text-slate-700 font-medium">Modo Manual</span>
+                            <span className="text-slate-700 font-medium">Modo Manual:</span>
+                            <span className="text-slate-500">O texto será salvo exatamente como digitado.</span>
                         </>
                     )}
                 </div>
@@ -242,8 +249,8 @@ export default function AddItemForm({ onAddItem }) {
                     className={`
                     relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
                     transition-all duration-200 ease-in-out flex flex-col items-center justify-center gap-3
-                    ${dragActive ? 'border-slate-500 bg-slate-50' : 'border-slate-300 hover:border-slate-400'}
-                    ${uploadMutation.isPending ? 'opacity-50' : ''}
+                    ${dragActive ? 'border-slate-500 bg-slate-50' : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'}
+                    ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}
                     `}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -260,6 +267,7 @@ export default function AddItemForm({ onAddItem }) {
                     )}
                     <div>
                         <span className="font-medium text-slate-900 block">Tirar foto ou selecionar</span>
+                        <span className="text-slate-500 text-sm">ou arraste e solte aqui</span>
                     </div>
                 </div>
 
@@ -271,7 +279,7 @@ export default function AddItemForm({ onAddItem }) {
                                 <button
                                     type="button"
                                     onClick={() => setPhotos(prev => prev.filter((_, i) => i !== index))}
-                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
@@ -285,33 +293,34 @@ export default function AddItemForm({ onAddItem }) {
 
       <Button
         type="submit"
+        // CORREÇÃO 1: O cooldown só deve bloquear o botão se o 'useAI' estiver ativado
         disabled={isProcessing || !location || !description || !title || (useAI && cooldownTimer > 0)}
         className={`w-full h-12 text-base font-medium mt-6 transition-all ${
+            // CORREÇÃO 2: A cor cinza (bloqueado) também só aparece se estiver no modo IA
             (useAI && cooldownTimer > 0) ? 'bg-slate-100 text-slate-500 border border-slate-200' :
             useAI ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
         }`}
       >
         {isProcessing ? (
-          // VACINA 1: key="loading" impede o erro do React ao trocar de elemento
-          <span key="loading" className="flex items-center justify-center">
+          <span className="flex items-center justify-center">
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             {useAI ? 'Gerando texto...' : 'Salvando...'}
           </span>
         ) : (
+            // CORREÇÃO 3: Lógica de exibição do texto
+            // Se estiver no Manual (useAI é false), mostra "Adicionar Item" direto, ignorando o timer
             (useAI && cooldownTimer > 0) ? (
-                <span key="cooldown" className="flex items-center justify-center font-mono">
+                <span className="flex items-center justify-center font-mono">
                     <Loader2 className="w-4 h-4 mr-2 animate-spin text-amber-500" />
-                    Aguarde {cooldownTimer}s...
+                    Aguarde {cooldownTimer}s para usar a IA...
                 </span>
             ) : useAI ? (
-                // VACINA 2: key="generate"
-                <span key="generate" className="flex items-center justify-center">
+                <span className="flex items-center justify-center">
                     <Sparkles className="w-4 h-4 mr-2" />
                     Gerar Texto para Revisão
                 </span>
             ) : (
-                // VACINA 3: key="add"
-                <span key="add" className="flex items-center justify-center">
+                <span className="flex items-center justify-center">
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Item ao Laudo
                 </span>
