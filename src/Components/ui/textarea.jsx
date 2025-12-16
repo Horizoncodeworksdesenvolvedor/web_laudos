@@ -1,0 +1,2 @@
+import React from "react"
+export const Textarea = ({ className, ...props }) => <textarea className={`flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ${className}`} {...props} />

@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fundo padrão claro e fonte profissional */
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: 'Inter', sans-serif; /* Se não tiver Inter, ele usa a padrão */
+}
+
+/* Remove aquela borda azul feia ao clicar em inputs */
+input, textarea, select, button {
+  @apply outline-none ring-offset-0 focus:ring-0 focus:border-slate-400;
+}
