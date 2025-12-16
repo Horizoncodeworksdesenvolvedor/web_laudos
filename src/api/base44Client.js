@@ -93,43 +93,34 @@ export const base44 = {
       
       // AQUI ESTÁ A MÁGICA: Chamada direta ao Gemini (Bypassing Render)
       InvokeLLM: async ({ prompt }) => {
-        if (!GEMINI_KEY) {
-          console.error("VITE_GEMINI_API_KEY não encontrada!");
-          return { technical_text: "Erro: Chave do Gemini não configurada no Vercel." };
-        }
+        // Usa a mesma URL base que o CRUD (https://laudos-api-mae2.onrender.com)
+        const url = `${API_BASE_URL}/api/generate-technical`; 
 
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-
-        // Instrução para o Gemini se comportar como engenheiro
-        const systemInstruction = "Você é um assistente especialista em engenharia civil e vistoria predial. Sua tarefa é transformar relatos informais de vistorias em textos técnicos formais, precisos e adequados para laudos de engenharia. Mantenha a impessoalidade e use terminologia técnica correta.";
-        
-        const payload = {
-          contents: [{
-            parts: [{ text: `${systemInstruction}\n\nTexto informal para converter: "${prompt}"\n\nTexto Técnico:` }]
-          }]
-        };
+        // O payload esperado pelo seu Backend (server/index.js) é { informalText: ... }
+        const payload = { informalText: prompt }; 
 
         try {
-          const response = await fetch(GEMINI_URL, {
+          // A CHAMADA AGORA VAI PARA O SEU BACKEND NO RENDER
+          const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          
+          if (!response.ok) {
+             // O Backend retorna erro 500 se a IA falhar
+             throw new Error(`Erro ${response.status} ao chamar o Backend da IA: ${await response.text()}`);
+          }
 
           const data = await response.json();
           
-          if (data.error) {
-             throw new Error(data.error.message);
-          }
-
-          // O Gemini retorna o texto dentro de candidates[0].content.parts[0].text
-          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erro ao gerar texto.";
-          
-          return { technical_text: generatedText };
+          // O Backend retorna { technical_text: generatedText }
+          return { technical_text: data.technical_text || "Erro ao gerar texto." };
 
         } catch (error) {
-          console.error("Erro no Gemini:", error);
-          return { technical_text: "Erro ao conectar com a IA. Verifique sua chave." };
+          console.error("Erro na comunicação com o Backend da IA:", error);
+          // O cooldown de 60s será acionado no Frontend devido a este erro.
+          return { technical_text: "Erro ao conectar com a IA. Verifique o servidor de Backend." };
         }
       }
     }
