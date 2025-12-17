@@ -2,8 +2,8 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button'; //
-import { Card, CardContent } from '@/components/ui/card'; //
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Undo, Trash2, CheckCircle2 } from 'lucide-react';
 
 export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) {
@@ -41,7 +41,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     setIsEmpty(false);
   };
 
-  // MODO: Assinatura Salva
+  // MODO: Assinatura Salva (mantido inalterado)
   if (existingSignatureUrl && isEmpty === false) {
     return (
       <Card className="shadow-lg border-2 border-emerald-400 bg-emerald-50">
@@ -58,12 +58,11 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           </div>
           <Button 
             variant="destructive" 
-            size="sm" 
+            // 🚨 NOVIDADE: Adicionado px-4 para padding correto
+            className="mt-3 px-4" 
             onClick={() => {
-                // Ao apagar, salva NULL no banco de dados
                 onSaveSignature(null); 
             }}
-            className="mt-3"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Apagar e Refazer
@@ -77,7 +76,6 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
   return (
     <Card className="shadow-md">
       <CardContent className="p-4">
-        {/* Adicionado h-[180px] para a área de desenho */}
         <div className="border border-slate-300 rounded-lg overflow-hidden bg-white">
           <SignatureCanvas
             ref={sigCanvas}
@@ -86,29 +84,34 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
             maxWidth={2.5}
             backgroundColor="white"
             canvasProps={{ 
-                // 🚨 CORREÇÃO DE LARGURA/ALTURA: Aumenta a altura para melhor desenho (h-40 -> h-[180px])
-                className: 'sigCanvas w-full h-[180px] border-b border-slate-300',
+                // 🚨 CORREÇÃO: Aumentado para 200px para mais espaço de desenho
+                className: 'sigCanvas w-full h-[200px] border-b border-slate-300',
                 style: { touchAction: 'none' }
             }}
             onEnd={() => setIsEmpty(sigCanvas.current.isEmpty())}
           />
         </div>
         
+        {/* CORREÇÃO DO LAYOUT DOS BOTÕES */}
+        {/* A classe 'flex justify-between gap-2' é boa, mas vamos ajustar a largura dos botões */}
         <div className="mt-3 flex justify-between gap-2">
+          
           <Button 
             variant="outline" 
-            size="sm" 
+            // 🚨 NOVIDADE: Definido uma largura fixa para o botão Limpar para balancear
+            className="w-[100px] sm:w-auto"
             onClick={clearSignature}
             disabled={isEmpty}
           >
             <Undo className="w-4 h-4 mr-2" />
             Limpar
           </Button>
-          {/* 🚨 CORREÇÃO DO BOTÃO: Removido o 'size="sm"' para que o padding padrão do Button (px-4 py-2) funcione corretamente e o texto não seja cortado. */}
+          
           <Button 
+            // 🚨 NOVIDADE: Definido largura fixa razoável para garantir o texto, ou flex-1
+            className="bg-slate-800 hover:bg-slate-900 flex-1 px-4"
             onClick={saveSignature}
             disabled={isEmpty}
-            className="bg-slate-800 hover:bg-slate-900"
           >
             <CheckCircle2 className="w-4 h-4 mr-2" />
             Salvar Assinatura
