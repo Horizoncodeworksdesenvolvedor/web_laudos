@@ -2,9 +2,9 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-// Removidos os imports Button e Undo
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Trash2 } from 'lucide-react'; // Mantidos apenas os ícones de status
+import { Undo, Trash2, CheckCircle2 } from 'lucide-react';
 
 export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) {
   const sigCanvas = useRef({});
@@ -19,7 +19,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     }
   }, [existingSignatureUrl]);
 
-  // As funções de ação foram mantidas no código, mas não estão mais ligadas a botões
+  // Limpa o canvas
   const clearSignature = () => {
     if (sigCanvas.current) {
         sigCanvas.current.clear();
@@ -27,14 +27,19 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     }
   };
 
+  // Captura o desenho em Base64, TRIMA o espaço em branco e salva
   const saveSignature = () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) return;
+
+    // Usa getTrimmedCanvas para cortar o espaço em branco (Melhoria de qualidade)
     const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
     const dataURL = trimmedCanvas.toDataURL('image/png');
+    
+    onSaveSignature(dataURL);
     setIsEmpty(false);
   };
 
-  // MODO: Assinatura Salva (Botão "Apagar e Refazer" Removido)
+  // MODO: Assinatura Salva
   if (existingSignatureUrl && isEmpty === false) {
     return (
       <Card className="shadow-lg border-2 border-emerald-400 bg-emerald-50">
@@ -49,13 +54,22 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
                className="h-full w-auto object-contain"
              />
           </div>
-          <p className="mt-2 text-xs text-slate-500">Botões de ação removidos para teste de layout.</p>
+          <Button 
+            variant="destructive" 
+            className="mt-3 px-4"
+            onClick={() => {
+                onSaveSignature(null); 
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Apagar e Refazer
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
-  // MODO: Desenho (Botões "Limpar" e "Salvar Assinatura" Removidos)
+  // MODO: Desenho
   return (
     <Card className="shadow-md">
       <CardContent className="p-4">
@@ -67,7 +81,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
             maxWidth={2.5}
             backgroundColor="white"
             canvasProps={{ 
-                // Mantido em 200px de altura para seu teste de espaço
+                // Aumentado para 200px de altura
                 className: 'sigCanvas w-full h-[200px] border-b border-slate-300',
                 style: { touchAction: 'none' }
             }}
@@ -75,8 +89,32 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           />
         </div>
         
-        {/* Esta é a área onde os botões ficavam. */}
-        <p className="mt-3 text-sm text-slate-500 text-center">Área de botões desativada para teste.</p>
+        {/* CONTAINER DOS BOTÕES COM LAYOUT 50/50 E ADAPTAÇÃO DE TEXTO */}
+        <div className="mt-3 flex gap-2">
+          
+          <Button 
+            variant="outline" 
+            className="flex-1 justify-center" // Ocupe 50% e centralize o conteúdo
+            onClick={clearSignature}
+            disabled={isEmpty}
+          >
+            <Undo className="w-4 h-4 mr-1 sm:mr-2" />
+            {/* Adaptação: Mostra só "Limpar" em telas pequenas/médias */}
+            <span className="hidden sm:inline">Limpar</span>
+            <span className="sm:hidden">Apagar</span> 
+          </Button>
+          
+          <Button 
+            className="bg-slate-800 hover:bg-slate-900 flex-1 justify-center" // Ocupe 50% e centralize o conteúdo
+            onClick={saveSignature}
+            disabled={isEmpty}
+          >
+            <CheckCircle2 className="w-4 h-4 mr-1 sm:mr-2" />
+            {/* Adaptação: Mostra "Salvar Assinatura" em telas maiores, e só "Salvar" em telas pequenas */}
+            <span className="hidden sm:inline">Salvar Assinatura</span>
+            <span className="inline sm:hidden">Salvar</span>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
