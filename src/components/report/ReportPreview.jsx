@@ -613,7 +613,22 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                 </div>
                 
                 <div className="w-full mx-auto text-center print:pb-20 pt-32 avoid-break">
-                    <div className="h-px bg-slate-900 w-[12cm] mx-auto mb-6 print:bg-black"></div>
+    
+                    {/* NOVO BLOCO: Exibe a assinatura se o URL existir */}
+                    {report.engineer_signature_url ? (
+                        <div className="mb-6 mx-auto w-full max-w-[12cm] print:mb-4">
+                        <img 
+                            src={report.engineer_signature_url} 
+                            alt="Assinatura do Engenheiro"
+                            // Adicionamos uma borda de baixo para simular a linha, mas é a imagem
+                            className="w-full h-auto max-h-[50mm] object-contain border-b-2 border-slate-900 print:border-black pb-2"
+                            />
+                        </div>
+                    ) : (
+                        // Linha padrão se não houver assinatura digital (Fallback)
+                        <div className="h-px bg-slate-900 w-[12cm] mx-auto mb-6 print:bg-black"></div>
+                    )}
+                    
                     <p className="font-bold text-slate-900 text-xl sm:text-2xl uppercase">{report.engineer_name}</p>
                     <p className="text-slate-700 text-base sm:text-lg">Engenheiro Civil</p>
                     {report.engineer_crea && <p className="text-slate-600 text-sm sm:text-base mt-1">CREA: {report.engineer_crea}</p>}
