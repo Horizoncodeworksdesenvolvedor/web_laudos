@@ -27,12 +27,15 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     }
   };
 
-  // Captura o desenho em Base64 e chama a função de salvar do pai
+  // Captura o desenho em Base64, TRIMA o espaço em branco e salva
   const saveSignature = () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) return;
 
-    // Exporta o desenho como data URL (Base64)
-    const dataURL = sigCanvas.current.toDataURL('image/png');
+    // 1. Usa getTrimmedCanvas para cortar o espaço em branco
+    const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
+    
+    // 2. Exporta o desenho como data URL (Base64)
+    const dataURL = trimmedCanvas.toDataURL('image/png');
     
     onSaveSignature(dataURL);
     setIsEmpty(false);
@@ -78,11 +81,13 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           <SignatureCanvas
             ref={sigCanvas}
             penColor='black'
-            // Configurações importantes para o canvas
+            // NOVIDADES PARA CORRIGIR PIXELIZAÇÃO E OFFSET
+            minWidth={1.5}  // Traço mais suave
+            maxWidth={2.5}  // Traço mais suave
+            backgroundColor="white" // Fundo branco para exportação limpa
+            // 🚨 CORREÇÃO DE OFFSET: Removidas as propriedades width e height fixas
             canvasProps={{ 
-                width: 500, 
-                height: 150, 
-                className: 'sigCanvas w-full h-40 border-b border-slate-300',
+                className: 'sigCanvas w-full h-40 border-b border-slate-300', // As dimensões são definidas APENAS pelo CSS
                 style: { touchAction: 'none' } // Impede rolagem no toque
             }}
             onEnd={() => setIsEmpty(sigCanvas.current.isEmpty())}
