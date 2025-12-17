@@ -2,8 +2,8 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button'; //
+import { Card, CardContent } from '@/components/ui/card'; //
 import { Undo, Trash2, CheckCircle2 } from 'lucide-react';
 
 export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) {
@@ -77,18 +77,18 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
   return (
     <Card className="shadow-md">
       <CardContent className="p-4">
+        {/* Adicionado h-[180px] para a área de desenho */}
         <div className="border border-slate-300 rounded-lg overflow-hidden bg-white">
           <SignatureCanvas
             ref={sigCanvas}
             penColor='black'
-            // NOVIDADES PARA CORRIGIR PIXELIZAÇÃO E OFFSET
-            minWidth={1.5}  // Traço mais suave
-            maxWidth={2.5}  // Traço mais suave
-            backgroundColor="white" // Fundo branco para exportação limpa
-            // 🚨 CORREÇÃO DE OFFSET: Removidas as propriedades width e height fixas
+            minWidth={1.5}
+            maxWidth={2.5}
+            backgroundColor="white"
             canvasProps={{ 
-                className: 'sigCanvas w-full h-40 border-b border-slate-300', // As dimensões são definidas APENAS pelo CSS
-                style: { touchAction: 'none' } // Impede rolagem no toque
+                // 🚨 CORREÇÃO DE LARGURA/ALTURA: Aumenta a altura para melhor desenho (h-40 -> h-[180px])
+                className: 'sigCanvas w-full h-[180px] border-b border-slate-300',
+                style: { touchAction: 'none' }
             }}
             onEnd={() => setIsEmpty(sigCanvas.current.isEmpty())}
           />
@@ -104,8 +104,8 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
             <Undo className="w-4 h-4 mr-2" />
             Limpar
           </Button>
+          {/* 🚨 CORREÇÃO DO BOTÃO: Removido o 'size="sm"' para que o padding padrão do Button (px-4 py-2) funcione corretamente e o texto não seja cortado. */}
           <Button 
-            size="sm" 
             onClick={saveSignature}
             disabled={isEmpty}
             className="bg-slate-800 hover:bg-slate-900"
