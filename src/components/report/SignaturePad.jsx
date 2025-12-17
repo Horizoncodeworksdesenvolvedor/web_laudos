@@ -31,17 +31,15 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
   const saveSignature = () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) return;
 
-    // 1. Usa getTrimmedCanvas para cortar o espaço em branco
+    // Usa getTrimmedCanvas para cortar o espaço em branco (Melhoria de qualidade)
     const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
-    
-    // 2. Exporta o desenho como data URL (Base64)
     const dataURL = trimmedCanvas.toDataURL('image/png');
     
     onSaveSignature(dataURL);
     setIsEmpty(false);
   };
 
-  // MODO: Assinatura Salva (mantido inalterado)
+  // MODO: Assinatura Salva
   if (existingSignatureUrl && isEmpty === false) {
     return (
       <Card className="shadow-lg border-2 border-emerald-400 bg-emerald-50">
@@ -58,8 +56,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           </div>
           <Button 
             variant="destructive" 
-            // 🚨 NOVIDADE: Adicionado px-4 para padding correto
-            className="mt-3 px-4" 
+            className="mt-3 px-4" // Mantive o px-4 para o padding do texto
             onClick={() => {
                 onSaveSignature(null); 
             }}
@@ -84,7 +81,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
             maxWidth={2.5}
             backgroundColor="white"
             canvasProps={{ 
-                // 🚨 CORREÇÃO: Aumentado para 200px para mais espaço de desenho
+                // AUMENTADO PARA 200PX (MAIS ESPAÇO)
                 className: 'sigCanvas w-full h-[200px] border-b border-slate-300',
                 style: { touchAction: 'none' }
             }}
@@ -92,14 +89,12 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           />
         </div>
         
-        {/* CORREÇÃO DO LAYOUT DOS BOTÕES */}
-        {/* A classe 'flex justify-between gap-2' é boa, mas vamos ajustar a largura dos botões */}
+        {/* CONTAINER DOS BOTÕES */}
         <div className="mt-3 flex justify-between gap-2">
           
           <Button 
             variant="outline" 
-            // 🚨 NOVIDADE: Definido uma largura fixa para o botão Limpar para balancear
-            className="w-[100px] sm:w-auto"
+            className="flex-1" // OCUPE 50% DO ESPAÇO
             onClick={clearSignature}
             disabled={isEmpty}
           >
@@ -108,8 +103,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           </Button>
           
           <Button 
-            // 🚨 NOVIDADE: Definido largura fixa razoável para garantir o texto, ou flex-1
-            className="bg-slate-800 hover:bg-slate-900 flex-1 px-4"
+            className="bg-slate-800 hover:bg-slate-900 flex-1" // OCUPE OS OUTROS 50%
             onClick={saveSignature}
             disabled={isEmpty}
           >
