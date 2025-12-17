@@ -20,6 +20,7 @@ import ArtUploadSection from '@/components/report/ArtUploadSection';
 import BlueprintUploadSection from '@/components/report/BlueprintUploadSection';
 import DiligenceEditSection from '@/components/report/DiligenceEditSection';
 import TestsSelectionSection from '@/components/report/TestsSelectionSection';
+import SignaturePad from '@/components/report/SignaturePad';
 
 export default function EditReport() {
   const navigate = useNavigate();
@@ -86,6 +87,27 @@ export default function EditReport() {
     );
     updateMutation.mutate({ items: updatedItems });
     setEditingItem(null); 
+  };
+
+  const handleSaveSignature = async (base64Data) => {
+      // Se base64Data for null (usuário clicou em Apagar)
+      if (!base64Data) {
+          // Salva o URL como nulo no banco de dados
+          updateMutation.mutate({ engineer_signature_url: null });
+          return;
+      }
+
+      try {
+          // 1. Faz upload para o Cloudinary (usando a nova função)
+          const { file_url } = await base44.integrations.Core.UploadBase64({ base64Data });
+          
+          // 2. Salva o URL no relatório
+          updateMutation.mutate({ engineer_signature_url: file_url });
+          
+      } catch (error) {
+          alert("Erro ao salvar assinatura. Tente novamente.");
+          console.error("Signature Upload Error:", error);
+      }
   };
 
   const handleMarkComplete = async () => {
@@ -263,79 +285,95 @@ export default function EditReport() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-white shadow-sm border border-slate-200">
-              <CardHeader className="pb-3 border-b border-slate-100">
-                <CardTitle className="text-base font-bold text-slate-900">Resumo</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Total de itens</span>
-                  <span className="font-bold text-slate-900 text-base">{items.length}</span>
-                </div>
-                
-                <div className="h-px bg-slate-100 my-2"></div>
-                
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">ART</span>
-                  <span className={`font-bold text-xs px-2 py-0.5 rounded ${
-                      report.art_url 
-                        ? (report.art_protocol ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') 
-                        : 'bg-red-100 text-red-700'
-                  }`}>
-                    {report.art_url 
-                        ? (report.art_protocol ? 'OK' : 'FALTA PROTOCOLO') 
-                        : 'PENDENTE'}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Plantas/Manuais</span>
-                  <span className={`font-bold text-xs px-2 py-0.5 rounded ${
-                      hasBlueprints 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {hasBlueprints ? 'OK' : 'PENDENTE'}
-                  </span>
-                </div>
-
-                <div className="h-px bg-slate-100 my-2"></div>
-
-                <div className="space-y-3">
-                    <div className="flex justify-between text-sm items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span className="text-slate-600">Críticos</span>
-                    </div>
-                    <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded text-xs">
-                        {items.filter(i => i.risk_level === 'critical').length}
+              {/* CARD 1: RESUMO (Seu código existente) */}
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-base font-bold text-slate-900">Resumo</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Total de itens</span>
+                    <span className="font-bold text-slate-900 text-base">{items.length}</span>
+                  </div>
+                  
+                  <div className="h-px bg-slate-100 my-2"></div>
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">ART</span>
+                    <span className={`font-bold text-xs px-2 py-0.5 rounded ${
+                        report.art_url 
+                          ? (report.art_protocol ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') 
+                          : 'bg-red-100 text-red-700'
+                    }`}>
+                      {report.art_url 
+                          ? (report.art_protocol ? 'OK' : 'FALTA PROTOCOLO') 
+                          : 'PENDENTE'}
                     </span>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                        <span className="text-slate-600">Regulares</span>
-                    </div>
-                    <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded text-xs">
-                        {items.filter(i => i.risk_level === 'regular').length}
-                    </span>
-                    </div>
+                  </div>
 
-                    <div className="flex justify-between text-sm items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span className="text-slate-600">Mínimos</span>
-                    </div>
-                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded text-xs">
-                        {items.filter(i => i.risk_level === 'minimal').length}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Plantas/Manuais</span>
+                    <span className={`font-bold text-xs px-2 py-0.5 rounded ${
+                        hasBlueprints 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {hasBlueprints ? 'OK' : 'PENDENTE'}
                     </span>
-                    </div>
-                </div>
+                  </div>
 
-              </CardContent>
-            </Card>
+                  <div className="h-px bg-slate-100 my-2"></div>
+
+                  <div className="space-y-3">
+                      <div className="flex justify-between text-sm items-center">
+                      <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          <span className="text-slate-600">Críticos</span>
+                      </div>
+                      <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded text-xs">
+                          {items.filter(i => i.risk_level === 'critical').length}
+                      </span>
+                      </div>
+                      
+                      <div className="flex justify-between text-sm items-center">
+                      <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                          <span className="text-slate-600">Regulares</span>
+                      </div>
+                      <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded text-xs">
+                          {items.filter(i => i.risk_level === 'regular').length}
+                      </span>
+                      </div>
+
+                      <div className="flex justify-between text-sm items-center">
+                      <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                          <span className="text-slate-600">Mínimos</span>
+                      </div>
+                      <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded text-xs">
+                          {items.filter(i => i.risk_level === 'minimal').length}
+                      </span>
+                      </div>
+                  </div>
+
+                </CardContent>
+              </Card>
+
+              {/* CARD 2: ASSINATURA (Novo) */}
+              <Card className="bg-white shadow-sm border border-slate-200">
+                  <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-base font-bold text-slate-900">
+                          Assinatura do Engenheiro
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-4">
+                      <SignaturePad 
+                          existingSignatureUrl={report.engineer_signature_url}
+                          onSaveSignature={handleSaveSignature}
+                      />
+                  </CardContent>
+              </Card>
           </div>
         </div>
       </div>
