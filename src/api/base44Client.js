@@ -89,6 +89,31 @@ export const base44 = {
             console.error("Erro ao fazer upload:", error);
             throw error;
         }
+      }, 
+
+      UploadBase64: async ({ base64Data }) => {
+        const cloudName = "dotped2kj"; 
+        const uploadPreset = "laudos_app"; 
+
+        const formData = new FormData();
+        // Cloudinary aceita a Data URL (base64) diretamente no campo 'file'
+        formData.append("file", base64Data); 
+        formData.append("upload_preset", uploadPreset);
+
+        try {
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Erro no upload para o Cloudinary");
+            const data = await response.json();
+            return { file_url: data.secure_url }; 
+
+        } catch (error) {
+            console.error("Erro ao fazer upload da assinatura:", error);
+            throw error;
+        }
       },
       
       // AQUI ESTÁ A MÁGICA: Chamada direta ao Gemini (Bypassing Render)
