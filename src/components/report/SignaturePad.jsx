@@ -2,9 +2,9 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button';
+// Removidos os imports Button e Undo
 import { Card, CardContent } from '@/components/ui/card';
-import { Undo, Trash2, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Trash2 } from 'lucide-react'; // Mantidos apenas os ícones de status
 
 export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) {
   const sigCanvas = useRef({});
@@ -19,7 +19,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     }
   }, [existingSignatureUrl]);
 
-  // Limpa o canvas
+  // As funções de ação foram mantidas no código, mas não estão mais ligadas a botões
   const clearSignature = () => {
     if (sigCanvas.current) {
         sigCanvas.current.clear();
@@ -27,19 +27,14 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
     }
   };
 
-  // Captura o desenho em Base64, TRIMA o espaço em branco e salva
   const saveSignature = () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) return;
-
-    // Usa getTrimmedCanvas para cortar o espaço em branco (Melhoria de qualidade)
     const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
     const dataURL = trimmedCanvas.toDataURL('image/png');
-    
-    onSaveSignature(dataURL);
     setIsEmpty(false);
   };
 
-  // MODO: Assinatura Salva
+  // MODO: Assinatura Salva (Botão "Apagar e Refazer" Removido)
   if (existingSignatureUrl && isEmpty === false) {
     return (
       <Card className="shadow-lg border-2 border-emerald-400 bg-emerald-50">
@@ -54,22 +49,13 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
                className="h-full w-auto object-contain"
              />
           </div>
-          <Button 
-            variant="destructive" 
-            className="mt-3 px-4" // Mantive o px-4 para o padding do texto
-            onClick={() => {
-                onSaveSignature(null); 
-            }}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Apagar e Refazer
-          </Button>
+          <p className="mt-2 text-xs text-slate-500">Botões de ação removidos para teste de layout.</p>
         </CardContent>
       </Card>
     );
   }
 
-  // MODO: Desenho
+  // MODO: Desenho (Botões "Limpar" e "Salvar Assinatura" Removidos)
   return (
     <Card className="shadow-md">
       <CardContent className="p-4">
@@ -81,7 +67,7 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
             maxWidth={2.5}
             backgroundColor="white"
             canvasProps={{ 
-                // AUMENTADO PARA 200PX (MAIS ESPAÇO)
+                // Mantido em 200px de altura para seu teste de espaço
                 className: 'sigCanvas w-full h-[200px] border-b border-slate-300',
                 style: { touchAction: 'none' }
             }}
@@ -89,28 +75,8 @@ export default function SignaturePad({ existingSignatureUrl, onSaveSignature }) 
           />
         </div>
         
-        {/* CONTAINER DOS BOTÕES */}
-        <div className="mt-3 flex justify-between gap-2">
-          
-          <Button 
-            variant="outline" 
-            className="flex-1" // OCUPE 50% DO ESPAÇO
-            onClick={clearSignature}
-            disabled={isEmpty}
-          >
-            <Undo className="w-4 h-4 mr-2" />
-            Limpar
-          </Button>
-          
-          <Button 
-            className="bg-slate-800 hover:bg-slate-900 flex-1" // OCUPE OS OUTROS 50%
-            onClick={saveSignature}
-            disabled={isEmpty}
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            Salvar Assinatura
-          </Button>
-        </div>
+        {/* Esta é a área onde os botões ficavam. */}
+        <p className="mt-3 text-sm text-slate-500 text-center">Área de botões desativada para teste.</p>
       </CardContent>
     </Card>
   );
