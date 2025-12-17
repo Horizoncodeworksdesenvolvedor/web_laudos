@@ -210,13 +210,12 @@ export default function Reports() {
                         {/* Botão Deletar */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-slate-300 hover:text-red-500 hover:bg-red-50 -mr-1"
+                            <button 
+                              type="button"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors -mr-1"
                             >
                               <Trash2 className="w-4 h-4" />
-                            </Button>
+                            </button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="w-[90%] rounded-xl"> {/* Ajuste largura modal */}
                             <AlertDialogHeader>
@@ -248,4 +247,5 @@ export default function Reports() {
       </div>
     </div>
   );
+
 }
