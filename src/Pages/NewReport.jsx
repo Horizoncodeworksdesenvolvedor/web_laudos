@@ -121,22 +121,33 @@ export default function NewReport() {
     if (value.length === 8) {
       setIsLoadingCep(true);
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${value}/json/`);
+        // Usando BrasilAPI que é mais estável
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${value}`);
+        
+        if (!response.ok) {
+          throw new Error("CEP não encontrado ou erro na API");
+        }
+        
         const data = await response.json();
         
-        if (!data.erro) {
-          setAddressDetails(prev => ({
-            ...prev,
-            cep: value,
-            street: data.logradouro,
-            neighborhood: data.bairro,
-            city: data.localidade,
-            state: data.uf
-          }));
+        // ATENÇÃO: Os campos do BrasilAPI são em inglês (street, neighborhood, city, state)
+        setAddressDetails(prev => ({
+          ...prev,
+          cep: value,
+          street: data.street,
+          neighborhood: data.neighborhood,
+          city: data.city,
+          state: data.state
+        }));
+
+        // Pula para o campo de número
+        setTimeout(() => {
           document.getElementById('address-number')?.focus();
-        }
+        }, 100);
+
       } catch (error) {
         console.error("Erro ao buscar CEP", error);
+        // Opcional: Se o BrasilAPI falhar, você pode colocar um alerta aqui
       } finally {
         setIsLoadingCep(false);
       }
