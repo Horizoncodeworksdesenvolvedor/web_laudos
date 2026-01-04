@@ -171,13 +171,13 @@ export default function Home() {
                           </h3>
                           
                           {/* Linha de baixo (Endereço ou REF) */}
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <div className="mt-1 flex items-center gap-2 min-w-0 w-full">
                              {isCompleted ? (
                                 <span className="text-[10px] sm:text-xs text-slate-500 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate">
                                     REF: {report.id?.substring(0,8).toUpperCase()}
                                 </span>
                              ) : (
-                                <p className="text-xs text-slate-500 truncate max-w-[200px] sm:max-w-xs">
+                                <p className="text-xs text-slate-500 truncate flex-1">
                                     {report.address || 'Sem endereço'}
                                 </p>
                              )}
@@ -223,4 +223,5 @@ export default function Home() {
       </div>
     </div>
   );
+
 }
