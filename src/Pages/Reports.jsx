@@ -160,7 +160,7 @@ export default function Reports() {
 
                         {/* Textos */}
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block w-full">
                             {report.client_name}
                           </h3>
                           
