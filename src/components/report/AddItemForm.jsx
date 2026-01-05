@@ -14,24 +14,23 @@ import VoiceInput from './VoiceInput';
 
 // Títulos mais frequentes extraídos do checklist do engenheiro
 const commonTitles = [
-  "Azulejo/Revestimento"
-  "Pisos"
-  "Forro de gesso"
-  "Pintura"
-  "Forro de gesso"
-  "Esquadria de aluminio"
-  "Portas"
-  "Tomadas"
-  "Interruptores"
-  "Ponto de luz"
-  "Vaso sanitário"
-  "Torneira"
-  "Sifão"
-  "Válvulas"
-  "Flexíveis"
-  "Ralos"
-  "Registro"
-  "Tampo da pia"
+  "Azulejo/Revestimento",
+  "Pisos",
+  "Forro de gesso",
+  "Pintura",
+  "Esquadria de aluminio",
+  "Portas",
+  "Tomadas",
+  "Interruptores",
+  "Ponto de luz",
+  "Vaso sanitário",
+  "Torneira",
+  "Sifão",
+  "Válvulas",
+  "Flexíveis",
+  "Ralos",
+  "Registro",
+  "Tampo da pia",
   "Vidros"
 ];
 
@@ -222,7 +221,7 @@ export default function AddItemForm({ onAddItem }) {
         {/* SELETOR DE MODO E DESCRIÇÃO */}
         <div>
             <div className="flex items-center justify-between mb-3">
-                <Label className="text-slate-700 font-medium block">Descrição do Problema</Label>
+                <Label htmlFor="item-description" className="text-slate-700 font-medium block">Descrição do Problema</Label>
                 
                 {/* Botões de Alternância (Toggle) */}
                 <div className="flex bg-slate-100 p-1 rounded-lg">
@@ -252,6 +251,8 @@ export default function AddItemForm({ onAddItem }) {
             <div className={`border rounded-lg p-1 ${useAI ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200 bg-white'}`}>
                 <div className="flex gap-2">
                     <Textarea
+                        id="item-description"
+                        name="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder={useAI 
@@ -393,5 +394,6 @@ export default function AddItemForm({ onAddItem }) {
   );
 
 }
+
 
 
