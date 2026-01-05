@@ -23,13 +23,13 @@ export default function InspectionItemCard({ item, index, onDelete, onEdit, isOp
         onClick={onToggle}
         className="p-4 flex items-center justify-between cursor-pointer bg-white hover:bg-slate-50 transition-colors"
       >
-        <div className="flex items-center gap-4 overflow-hidden">
+        <div className="flex items-center gap-4 overflow-hidden min-w-0 flex-1">
             {/* Ícone de Risco Grande */}
             <div className={`p-2 rounded-full shrink-0 ${risk.bg} ${risk.text}`}>
                 <RiskIcon className="w-5 h-5" />
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-slate-500 text-xs uppercase font-bold tracking-wider mb-0.5">
                     <MapPin className="w-3 h-3" />
                     <span className="truncate">{item.location}</span>
@@ -98,4 +98,5 @@ export default function InspectionItemCard({ item, index, onDelete, onEdit, isOp
       )}
     </div>
   );
+
 }
