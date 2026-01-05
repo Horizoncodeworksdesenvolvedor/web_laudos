@@ -1,86 +1,150 @@
 import React, { useState } from 'react';
-import { Loader2, Save, FileText, Type, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Save, FileText, Type, Image as ImageIcon, Sparkles, PenTool, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { base44 } from '@/api/base44Client'; // <--- IMPORTANTE PARA O UPLOAD
+import { base44 } from '@/api/base44Client';
 import LocationChips from './LocationChips';
 import RiskSelector from './RiskSelector';
-import MultiPhotoUpload from './MultiPhotoUpload'; // <--- IMPORTANTE
+import MultiPhotoUpload from './MultiPhotoUpload';
+
+// Títulos mais frequentes extraídos do checklist do engenheiro
+const commonTitles = [
+  "Azulejo/Revestimento",
+  "Pisos",
+  "Forro de gesso",
+  "Pintura",
+  "Esquadria de aluminio",
+  "Portas",
+  "Tomadas",
+  "Interruptores",
+  "Ponto de luz",
+  "Vaso sanitário",
+  "Torneira",
+  "Sifão",
+  "Válvulas",
+  "Flexíveis",
+  "Ralos",
+  "Registro",
+  "Tampo da pia",
+  "Vidros"
+];
 
 export default function EditItemForm({ item, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     ...item,
     title: item.title || '',
     technical_description: item.technical_description || item.informal_description,
-    photos: item.photos || [] // Garante que é um array
+    photos: item.photos || []
   });
   
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // Estado para feedback de upload
+  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [useAI, setUseAI] = useState(false); // Por padrão na edição, iniciamos em manual
+
+  // IA Resiliente (Mesma lógica do AddItemForm)
+  const generateTechnicalText = async (informalText) => {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await base44.integrations.Core.InvokeLLM({
+          prompt: `Atue como Perito em Engenharia Diagnóstica. Transforme a observação em texto técnico profissional. 
+          REGRAS: 1. Direto e objetivo. 2. Foco em Anomalia, Causa e Reparo. 3. Máximo 10 frases. 4. Responda APENAS com o texto final. TEXTO: "${informalText}"`
+        });
+        if (response?.technical_text) return response.technical_text;
+      } catch (error) {
+        if (attempt < 2) await new Promise(r => setTimeout(r, 500));
+      }
+    }
+    return null;
+  };
+
+  const handleRefineWithAI = async () => {
+    if (!formData.technical_description) return;
+    setIsProcessingAI(true);
+    const result = await generateTechnicalText(formData.technical_description);
+    if (result) {
+      setFormData({ ...formData, technical_description: result });
+      setUseAI(false); // Volta para manual para o engenheiro revisar
+    } else {
+      alert("IA indisponível no momento. Tente novamente em instantes.");
+    }
+    setIsProcessingAI(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
 
-    // --- LÓGICA DE UPLOAD (Novas Fotos) ---
     let finalPhotoUrls = [];
-    
-    // Se tiver fotos, verifica quais precisam subir
     if (formData.photos && formData.photos.length > 0) {
-        setIsUploading(true); // Ativa spinner de upload se necessário
-        
-        for (const photo of formData.photos) {
-            // Se for arquivo (Objeto File), faz upload
-            if (typeof photo !== 'string') {
-                try {
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file: photo });
-                    finalPhotoUrls.push(file_url);
-                } catch (error) {
-                    console.error("Erro no upload da foto editada:", error);
-                    alert("Erro ao salvar uma das fotos novas.");
-                }
-            } else {
-                // Se já for string (URL antiga), mantém
-                finalPhotoUrls.push(photo);
-            }
+      setIsUploading(true);
+      for (const photo of formData.photos) {
+        if (typeof photo !== 'string') {
+          try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: photo });
+            finalPhotoUrls.push(file_url);
+          } catch (error) {
+            console.error("Erro no upload:", error);
+          }
+        } else {
+          finalPhotoUrls.push(photo);
         }
-        setIsUploading(false);
+      }
+      setIsUploading(false);
     }
-    // --------------------------------------
 
-    // Salva com a lista atualizada de URLs
     onSave({ ...formData, photos: finalPhotoUrls });
     setIsSaving(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 px-1">
       
       {/* Local */}
       <div>
-        <Label className="text-slate-700 font-medium mb-3 block">Local</Label>
+        <Label htmlFor="edit-location" className="text-slate-700 font-medium mb-3 block">Local</Label>
         <LocationChips 
             onSelect={(loc) => setFormData({...formData, location: loc})} 
             selectedLocation={formData.location} 
         />
         <Input
+          id="edit-location"
+          name="location"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           className="mt-3 bg-white"
         />
       </div>
 
-      {/* Título */}
+      {/* Título com Chips Rápidos */}
       <div>
-        <Label className="text-slate-700 font-medium mb-2 block">Título do Apontamento</Label>
+        <Label htmlFor="edit-title" className="text-slate-700 font-medium mb-2 block">Título do Apontamento</Label>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {commonTitles.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => setFormData({ ...formData, title: suggestion })}
+              className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border transition-all ${
+                formData.title === suggestion 
+                ? 'bg-slate-900 text-white border-slate-900' 
+                : 'bg-slate-50 text-slate-600 border-slate-200'
+              }`}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
         <div className="relative">
             <Input
+                id="edit-title"
+                name="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="bg-white pl-10"
-                placeholder="Título curto..."
+                placeholder="Título do item..."
             />
             <Type className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
         </div>
@@ -95,7 +159,7 @@ export default function EditItemForm({ item, onSave, onCancel }) {
         />
       </div>
 
-      {/* FOTOS (NOVA SEÇÃO DE EDIÇÃO) */}
+      {/* FOTOS */}
       <div>
         <Label className="text-slate-700 font-medium mb-3 block flex items-center gap-2">
             <ImageIcon className="w-4 h-4" /> Fotos do Item
@@ -107,16 +171,31 @@ export default function EditItemForm({ item, onSave, onCancel }) {
         />
       </div>
 
-      {/* Texto Técnico */}
+      {/* Texto Técnico com Integração de IA para refinamento */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-4 h-4 text-slate-600" />
-            <Label className="text-slate-900 font-bold">Descrição Técnica</Label>
+        <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-600" />
+                <Label htmlFor="edit-description" className="text-slate-900 font-bold">Descrição Técnica</Label>
+            </div>
+            
+            {/* Botão opcional para re-processar com IA se o engenheiro quiser mudar o texto */}
+            <button 
+              type="button"
+              onClick={handleRefineWithAI}
+              disabled={isProcessingAI}
+              className="text-[10px] flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-indigo-100 hover:bg-indigo-100"
+            >
+              {isProcessingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+              Refinar com IA
+            </button>
         </div>
         <Textarea
+            id="edit-description"
+            name="description"
             value={formData.technical_description}
             onChange={(e) => setFormData({ ...formData, technical_description: e.target.value })}
-            className="min-h-[200px] bg-white text-base leading-relaxed p-4"
+            className="min-h-[150px] bg-white text-base leading-relaxed p-3"
         />
       </div>
 
@@ -124,7 +203,7 @@ export default function EditItemForm({ item, onSave, onCancel }) {
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
             Cancelar
         </Button>
-        <Button type="submit" disabled={isSaving || isUploading} className="flex-1 bg-slate-900 hover:bg-slate-800">
+        <Button type="submit" disabled={isSaving || isUploading || isProcessingAI} className="flex-1 bg-slate-900 hover:bg-slate-800">
             {isSaving ? (
                 <span className="flex items-center justify-center">
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" /> 
