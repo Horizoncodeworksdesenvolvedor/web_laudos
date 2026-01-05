@@ -166,14 +166,14 @@ export default function Home() {
                         
                         {/* Conteúdo Central (Flex-1 para ocupar espaço e truncar texto) */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate leading-tight">
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block w-full leading-tight">
                             {report.client_name}
                           </h3>
                           
                           {/* Linha de baixo (Endereço ou REF) */}
                           <div className="mt-1 flex items-center gap-2 min-w-0 w-full">
                              {isCompleted ? (
-                                <span className="text-[10px] sm:text-xs text-slate-500 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate">
+                                <span className="text-[10px] sm:text-xs text-slate-500 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate shrink-0">
                                     REF: {report.id?.substring(0,8).toUpperCase()}
                                 </span>
                              ) : (
@@ -184,7 +184,7 @@ export default function Home() {
 
                              {/* Badge de Revistoria (Azul) */}
                              {isReinspection && (
-                                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap">
+                                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap shrink-0">
                                     Revistoria
                                 </span>
                              )}
@@ -225,3 +225,4 @@ export default function Home() {
   );
 
 }
+
