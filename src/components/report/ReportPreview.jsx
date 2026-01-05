@@ -90,7 +90,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
 
   const today = new Date();
   
-  const contentPadding = "px-4 py-6 sm:px-12 sm:py-8 print:p-0"; 
+  const contentPadding = "px-2 py-6 sm:px-12 sm:py-8 print:p-0"; 
 
   const displayItems = report.items || [];
 
@@ -510,7 +510,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                                                 </div>
                                             </div>
                                             
-                                            <div className="text-base sm:text-lg text-justify text-slate-800 leading-relaxed font-serif bg-slate-50/50 p-4 rounded-lg border border-slate-100 print:border print:border-slate-300 print:p-4 print:bg-transparent mb-4"> 
+                                            <div className="text-base sm:text-lg text-justify text-slate-800 leading-relaxed font-serif bg-slate-50/50 p-3 sm:p-4 rounded-lg border border-slate-100 print:border print:border-slate-300 print:p-4 print:bg-transparent mb-4"> 
                                                 <div className="whitespace-pre-wrap">{item.technical_description}</div>
                                                 
                                                 {report.is_reinspection && item.correction_notes && (
@@ -610,7 +610,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
 
                     <div className="flex items-start justify-center pt-4 avoid-break"> 
                         <img 
-                            src={printableArt} 
+                            src={optimizeCloudinaryUrl(printableArt)} 
                             className="max-w-full max-h-[200mm] object-contain border border-slate-200 print:border-0" 
                             alt="ART Anexada" 
                         />
@@ -656,4 +656,5 @@ export default function ReportPreview({ report, fullHistory = [] }) {
     </div>
   );
 }
+
 
