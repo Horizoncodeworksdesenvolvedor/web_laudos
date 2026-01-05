@@ -149,40 +149,36 @@ export default function Home() {
                 <Link 
                   key={report.id} 
                   to={createPageUrl(isCompleted ? `ViewReport?id=${report.id}` : `EditReport?id=${report.id}`)}
+                  className="block min-w-0" // Adicionado para garantir que o Link não estique o pai
                 >
-                  <Card className="bg-white hover:shadow-lg transition-all duration-200 cursor-pointer border-0 shadow-sm">
-                    {/* Padding p-4 funciona bem para mobile e desktop */}
+                  {/* 1. Adicionado overflow-hidden no Card */}
+                  <Card className="bg-white hover:shadow-lg transition-all duration-200 cursor-pointer border-0 shadow-sm overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         
-                        {/* Ícone (Fixo, não encolhe) */}
+                        {/* Ícone (Mantenha como está) */}
                         <div className={`h-12 w-12 flex items-center justify-center rounded-xl shrink-0 ${iconBgClass}`}>
-                            {isReinspection ? (
-                                <ClipboardCheck className={`w-6 h-6 ${iconColorClass}`} />
-                            ) : (
-                                <Building2 className={`w-6 h-6 ${iconColorClass}`} />
-                            )}
+                            {isReinspection ? <ClipboardCheck className={`w-6 h-6 ${iconColorClass}`} /> : <Building2 className={`w-6 h-6 ${iconColorClass}`} />}
                         </div>
                         
-                        {/* Conteúdo Central (Flex-1 para ocupar espaço e truncar texto) */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block w-full leading-tight">
+                        {/* 2. Conteúdo Central: Adicionado overflow-hidden */}
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block leading-tight">
                             {report.client_name}
                           </h3>
                           
-                          {/* Linha de baixo (Endereço ou REF) */}
-                          <div className="mt-1 flex items-center gap-2 min-w-0 w-full">
+                          {/* 3. Sub-linha: Removido w-full (que pode causar esticamento forçado) */}
+                          <div className="mt-1 flex items-center gap-2 min-w-0">
                              {isCompleted ? (
                                 <span className="text-[10px] sm:text-xs text-slate-500 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate shrink-0">
                                     REF: {report.id?.substring(0,8).toUpperCase()}
                                 </span>
                              ) : (
-                                <p className="text-xs text-slate-500 truncate flex-1">
+                                <p className="text-xs text-slate-500 truncate flex-1 min-w-0">
                                     {report.address || 'Sem endereço'}
                                 </p>
                              )}
-
-                             {/* Badge de Revistoria (Azul) */}
+                
                              {isReinspection && (
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap shrink-0">
                                     Revistoria
@@ -190,28 +186,16 @@ export default function Home() {
                              )}
                           </div>
                         </div>
-
-                        {/* Coluna da Direita (Status + Seta) */}
+                
+                        {/* Coluna da Direita (Mantenha como está, o shrink-0 é vital aqui) */}
                         <div className="flex items-center gap-2 shrink-0 pl-1">
-                           {/* Em mobile muito pequeno, escondemos o texto do badge se necessário, ou usamos um ícone. 
-                               Aqui mantive o badge mas com fonte pequena */}
-                           <Badge 
-                            variant="secondary" 
-                            className={`
-                              hidden xs:flex px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wide
-                              ${isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}
-                            `}
-                          >
+                           <Badge variant="secondary" className={`hidden xs:flex px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wide ${isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                             {isCompleted ? 'Concluído' : 'Rascunho'}
                           </Badge>
-                          
-                          {/* Em telas muito pequenas (<350px), mostramos só a bolinha de cor se preferir, 
-                              mas o hidden xs:flex acima já ajuda. Abaixo um fallback visual simples */}
                           <div className={`xs:hidden w-3 h-3 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-
                           <ArrowRight className="w-4 h-4 text-slate-300" />
                         </div>
-
+                
                       </div>
                     </CardContent>
                   </Card>
