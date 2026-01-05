@@ -20,7 +20,7 @@ export default function NewReport() {
     client_name: '',
     client_document: '',
     address: '', 
-    inspection_date: new Date().toISOString().split('T')[0],
+    inspection_date: new Date().toLocaleDateString('en-CA'),
     engineer_name: '',
     engineer_document: '',
     engineer_crea: '',
