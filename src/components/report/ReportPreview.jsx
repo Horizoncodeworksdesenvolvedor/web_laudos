@@ -219,7 +219,10 @@ export default function ReportPreview({ report, fullHistory = [] }) {
 
         <div className="mt-auto pb-8 sm:pb-12 print:pb-0">
             <p className="text-base sm:text-lg font-bold text-slate-800 uppercase tracking-wide">
-                São Paulo, {format(new Date(report.created_date || today), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {/* Usamos a data da vistoria como base para a data da capa, travada ao meio-dia */}
+                São Paulo, {report.inspection_date 
+                    ? format(new Date(report.inspection_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                    : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </p>
         </div>
       </div>
@@ -340,7 +343,10 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                         <Calendar className="w-4 h-4 text-slate-500" />
                         <span className="text-xs uppercase font-bold tracking-widest">Data da Vistoria:</span>
                     </div>
-                    <span className="font-bold text-base sm:text-lg">{report.inspection_date ? format(new Date(report.inspection_date), "dd/MM/yyyy") : '--/--/----'}</span>
+                    <span className="font-bold text-base sm:text-lg">
+                    {/* Adicionamos 'T12:00:00' para travar a interpretação da data ao meio-dia */}
+                    {report.inspection_date ? format(new Date(report.inspection_date + 'T12:00:00'), "dd/MM/yyyy") : '--/--/----'}
+                    </span>
                 </div>
             </div>
             {report.diligence_text && (
