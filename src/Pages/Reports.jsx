@@ -141,15 +141,15 @@ export default function Reports() {
 
               return (
                 <Card key={report.id} className="bg-white shadow-sm border-0 hover:shadow-md transition-all overflow-hidden">
-                  <CardContent className="p-0"> {/* Padding zero para controlar melhor internamente */}
+                  <CardContent className="p-0">
                     <div className="flex items-stretch">
                       
-                      {/* Área Clicável Principal (Leva para o relatório) */}
+                      {/* Área Clicável Principal - Adicionado 'overflow-hidden' */}
                       <Link 
                         to={createPageUrl(isCompleted ? `ViewReport?id=${report.id}` : `EditReport?id=${report.id}`)}
-                        className="flex-1 flex items-center gap-3 p-4 min-w-0 hover:bg-slate-50 transition-colors"
+                        className="flex-1 flex items-center gap-3 p-4 min-w-0 overflow-hidden hover:bg-slate-50 transition-colors"
                       >
-                        {/* Ícone */}
+                        {/* Ícone (shrink-0 garante que ele não amasse) */}
                         <div className={`h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl shrink-0 ${iconBgClass}`}>
                            {isReinspection ? (
                                <ClipboardCheck className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
@@ -157,25 +157,25 @@ export default function Reports() {
                                <Building2 className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
                            )}
                         </div>
-
-                        {/* Textos */}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block w-full">
+              
+                        {/* Container de Texto - Adicionado 'overflow-hidden' */}
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate block leading-tight">
                             {report.client_name}
                           </h3>
                           
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-2 mt-0.5 min-w-0">
                             {isCompleted ? (
-                                <span className="text-[10px] sm:text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate">
+                                <span className="text-[10px] sm:text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate shrink-0">
                                     REF: {report.id?.substring(0,8).toUpperCase()}
                                 </span>
                             ) : (
-                                <p className="text-xs text-slate-500 truncate max-w-[150px] sm:max-w-md">
+                                /* flex-1 min-w-0 permite que o endereço encolha para dar espaço aos badges */
+                                <p className="text-xs text-slate-500 truncate flex-1 min-w-0">
                                     {report.address || 'Sem endereço'}
                                 </p>
                             )}
                             
-                            {/* Badge de Revistoria */}
                             {isReinspection && (
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
                                     REV
@@ -184,40 +184,37 @@ export default function Reports() {
                           </div>
                         </div>
                       </Link>
-
-                      {/* Área de Ações (Fixo à direita) */}
-                      <div className="flex items-center gap-2 pr-4 border-l border-slate-100 pl-3 bg-white">
+              
+                      {/* Área de Ações - Adicionado 'shrink-0' para o botão não sumir */}
+                      <div className="flex items-center gap-2 pr-4 border-l border-slate-100 pl-3 bg-white shrink-0">
                         
-                        {/* Status Badge (Esconde texto em telas muito pequenas) */}
                         <Badge 
                           variant="secondary" 
                           className={`
-                            hidden xs:flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide h-6 items-center
+                            hidden xs:flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide h-6 items-center shrink-0
                             ${isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}
                           `}
                         >
                           {isCompleted ? 'Concluído' : 'Rascunho'}
                         </Badge>
-
-                        {/* Bolinha de status para telas minúsculas */}
-                        <div className={`xs:hidden w-2.5 h-2.5 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-
-                        {/* Data (Só desktop) */}
-                        <span className="text-xs text-slate-400 hidden md:block w-20 text-right">
+              
+                        <div className={`xs:hidden w-2.5 h-2.5 rounded-full shrink-0 ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+              
+                        <span className="text-xs text-slate-400 hidden md:block w-20 text-right shrink-0">
                           {format(new Date(report.created_date), 'dd/MM/yyyy')}
                         </span>
-
-                        {/* Botão Deletar */}
+              
+                        {/* Botão Deletar (shrink-0 protege o botão) */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <button 
                               type="button"
-                              className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors -mr-1"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors -mr-1 shrink-0"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="w-[90%] rounded-xl"> {/* Ajuste largura modal */}
+                          <AlertDialogContent className="w-[90%] max-w-[400px] rounded-xl">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Excluir relatório?</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -236,7 +233,7 @@ export default function Reports() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-
+              
                     </div>
                   </CardContent>
                 </Card>
@@ -249,3 +246,4 @@ export default function Reports() {
   );
 
 }
+
