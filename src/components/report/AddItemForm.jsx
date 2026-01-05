@@ -91,15 +91,30 @@ export default function AddItemForm({ onAddItem }) {
   };
 
   const generateTechnicalText = async (informalText) => {
-    try {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Transforme esta observação informal de campo em texto técnico formal para um Laudo de Vistoria Predial: "${informalText}". Responda apenas com o texto técnico.` 
-      });
-      return response.technical_text;
-    } catch (error) {
-      console.error("Erro na IA:", error);
-      return null; // <--- Importante: Retorna nulo para ativar o timer
+    // Tentamos até 2 vezes para garantir que o engenheiro não fique travado se o sinal oscilar
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const response = await base44.integrations.Core.InvokeLLM({
+                prompt: `Atue como Perito em Engenharia Diagnóstica. Transforme a observação em texto técnico profissional. 
+                REGRAS:
+                1. Seja objetivo e direto, eliminando introduções inúteis.
+                2. Foque no essencial: Descrição da Anomalia, Causa provável e Método de Reparo.
+                3. Utilize no máximo 10 frases (mantenha a concisão técnica).
+                4. Responda APENAS com o texto final para o laudo.
+                TEXTO: "${informalText}"`
+            });
+            
+            if (response?.technical_text) return response.technical_text;
+            
+        } catch (error) {
+            console.error(`Tentativa ${attempt} de IA falhou:`, error);
+            // Se falhar a primeira, espera 0.5s e tenta a última vez
+            if (attempt < 2) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
     }
+    return null; // Se as duas falharem, ativa o modo manual/timer de 60s
   };
 
   const handleVoiceTranscript = (transcript) => {
@@ -378,4 +393,5 @@ export default function AddItemForm({ onAddItem }) {
   );
 
 }
+
 
