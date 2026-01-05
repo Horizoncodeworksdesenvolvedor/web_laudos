@@ -74,6 +74,7 @@ export default function ViewReport() {
     
     const nextRevNumber = reportChain.length; 
     
+    
     if (!window.confirm(`Gerar documento de Revistoria (Sequência ${nextRevNumber})?`)) return;
 
     setIsCreatingReinspection(true);
@@ -94,7 +95,7 @@ export default function ViewReport() {
             parent_report_id: latestReport.id, 
             status: 'draft',
             created_date: new Date().toISOString(),
-            inspection_date: new Date().toISOString().split('T')[0]
+            inspection_date: new Date().toLocaleDateString('en-CA')
         };
 
         const created = await base44.entities.TechnicalReport.create(newReinspection);
