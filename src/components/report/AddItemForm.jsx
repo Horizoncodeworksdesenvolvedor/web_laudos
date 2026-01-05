@@ -14,14 +14,25 @@ import VoiceInput from './VoiceInput';
 
 // Títulos mais frequentes extraídos do checklist do engenheiro
 const commonTitles = [
-  "Fissuras / Trincas",
-  "Pintura / Acabamento",
-  "Umidade / Infiltração",
-  "Pisos e Revestimentos",
-  "Esquadrias e Vidros",
-  "Portas e Ferragens",
-  "Instalações Elétricas",
-  "Instalações Hidráulicas"
+  "Azulejo/Revestimento"
+  "Pisos"
+  "Forro de gesso"
+  "Pintura"
+  "Forro de gesso"
+  "Esquadria de aluminio"
+  "Portas"
+  "Tomadas"
+  "Interruptores"
+  "Ponto de luz"
+  "Vaso sanitário"
+  "Torneira"
+  "Sifão"
+  "Válvulas"
+  "Flexíveis"
+  "Ralos"
+  "Registro"
+  "Tampo da pia"
+  "Vidros"
 ];
 
 export default function AddItemForm({ onAddItem }) {
@@ -367,3 +378,4 @@ export default function AddItemForm({ onAddItem }) {
   );
 
 }
+
