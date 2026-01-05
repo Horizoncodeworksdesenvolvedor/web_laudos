@@ -12,6 +12,18 @@ import LocationChips from './LocationChips';
 import RiskSelector from './RiskSelector';
 import VoiceInput from './VoiceInput';
 
+// Títulos mais frequentes extraídos do checklist do engenheiro
+const commonTitles = [
+  "Fissuras / Trincas",
+  "Pintura / Acabamento",
+  "Umidade / Infiltração",
+  "Pisos e Revestimentos",
+  "Esquadrias e Vidros",
+  "Portas e Ferragens",
+  "Instalações Elétricas",
+  "Instalações Hidráulicas"
+];
+
 export default function AddItemForm({ onAddItem }) {
   const [location, setLocation] = useState('');
   const [title, setTitle] = useState('');
@@ -134,9 +146,11 @@ export default function AddItemForm({ onAddItem }) {
       <div className="space-y-4">
         {/* Local */}
         <div>
-            <Label className="text-slate-700 font-medium mb-3 block">Cômodo / Local</Label>
+            <Label htmlFor="item-location" className="text-slate-700 font-medium mb-3 block">Cômodo / Local</Label>
             <LocationChips onSelect={setLocation} selectedLocation={location} />
             <Input
+                id="item-location"
+                name="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ou digite um local personalizado..."
@@ -146,9 +160,30 @@ export default function AddItemForm({ onAddItem }) {
 
         {/* Título */}
         <div>
-            <Label className="text-slate-700 font-medium mb-2 block">Título do Apontamento</Label>
+            <Label htmlFor="item-title" className="text-slate-700 font-medium mb-2 block">Título do Apontamento</Label>
+
+            {/* Botões de Seleção Rápida baseados no Checklist */}
+            <div className="flex flex-wrap gap-2 mb-3">
+                {commonTitles.map((suggestion) => (
+                    <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setTitle(suggestion)}
+                        className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border transition-all ${
+                            title === suggestion 
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'
+                        }`}
+                    >
+                        {suggestion}
+                    </button>
+                ))}
+            </div>
+          
             <div className="relative">
                 <Input
+                    id="item-title"
+                    name="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Infiltração no Teto, Piso Quebrado..."
@@ -240,6 +275,7 @@ export default function AddItemForm({ onAddItem }) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                capture="environment"
                 className="hidden"
                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 disabled={uploadMutation.isPending}
@@ -329,4 +365,5 @@ export default function AddItemForm({ onAddItem }) {
       </Button>
     </form>
   );
+
 }
