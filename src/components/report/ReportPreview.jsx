@@ -6,6 +6,16 @@ import {
   Calendar, User, Building2, BarChart3, History, CheckCheck, XCircle
 } from 'lucide-react';
 
+// Função para otimizar imagens do Cloudinary (Poco/Galaxy/iPhone)
+const optimizeCloudinaryUrl = (url) => {
+  if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return url;
+  
+  // f_auto: formato automático / q_auto: qualidade balanceada / w_1200: largura ideal
+  return url
+    .replace('/upload/', '/upload/f_auto,q_auto,w_1200/')
+    .replace(/\.(heic|heif|webp)$/i, '.jpg');
+};
+
 // Configurações mantidas
 const riskConfig = {
   critical: { 
@@ -515,7 +525,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 avoid-break"> 
                                                 {item.photos.map((photo, idx) => (
                                                     <div key={idx} className="relative h-48 sm:h-48 print:h-40 bg-slate-50 rounded-lg overflow-hidden border border-slate-300 shadow-sm print:shadow-none">
-                                                        <img src={photo} className="w-full h-full object-contain" alt="" />
+                                                        <img src={optimizeCloudinaryUrl(photo)} className="w-full h-full object-contain" alt="" />
                                                         {report.is_reinspection && <span className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm print:bg-black print-dark-text">ORIGINAL</span>}
                                                     </div>
                                                 ))}
@@ -527,7 +537,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {item.correction_photos.map((photo, idx) => (
                                                         <div key={idx} className="relative h-48 sm:h-48 print:h-40 bg-emerald-50 rounded-lg overflow-hidden border border-emerald-200 shadow-sm print:shadow-none">
-                                                            <img src={photo} className="w-full h-full object-contain" alt="" />
+                                                            <img src={optimizeCloudinaryUrl(photo)} className="w-full h-full object-contain" alt="" />
                                                             <span className="absolute top-2 left-2 bg-emerald-600/80 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm print:bg-black print-dark-text">APÓS CORREÇÃO</span>
                                                         </div>
                                                     ))}
@@ -559,7 +569,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                                     {doc.type === 'floor_plan' ? 'Planta Baixa' : 'Documento'}
                                 </h3>
                                 <div className="border border-slate-200 rounded-lg overflow-hidden flex justify-center bg-slate-50 p-4 print:border-slate-300">
-                                    <img src={doc.url} className="w-full h-auto max-h-[220mm] object-contain" alt="" />
+                                    <img src={optimizeCloudinaryUrl(doc.url)} className="w-full h-auto max-h-[220mm] object-contain" alt="" />
                                 </div>
                             </div>
                         ))}
@@ -624,7 +634,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                     {report.engineer_signature_url ? (
                         <div className="mb-6 mx-auto w-full max-w-[12cm] print:mb-4">
                         <img 
-                            src={report.engineer_signature_url} 
+                            src={optimizeCloudinaryUrl(report.engineer_signature_url)} 
                             alt="Assinatura do Engenheiro"
                             // Adicionamos uma borda de baixo para simular a linha, mas é a imagem
                             className="w-full h-auto max-h-[50mm] object-contain border-b-2 border-slate-900 print:border-black pb-2"
@@ -646,3 +656,4 @@ export default function ReportPreview({ report, fullHistory = [] }) {
     </div>
   );
 }
+
