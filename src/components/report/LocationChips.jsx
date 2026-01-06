@@ -4,18 +4,23 @@ const COMMON_LOCATIONS = [
   'Área de Serviço/Lavanderia',
   'Banheiro Social',
   'Banheiro Suíte',
+  'Circulação',
   'Cobertura',
   'Corredor',
   'Cozinha',
   'Fachada',
   'Garagem',
   'Hall de Entrada',
+  'Lavabo',
   'Piscina',
   'Quarto 1',
   'Quarto 2',
   'Sacada',
   'Sala de Estar',
-  'Salão de Festas'
+  'Salão de Festas',
+  'Suíte',
+  'Varanda Gourmet',
+  'Outros'
 ];
 
 export default function LocationChips({ onSelect, selectedLocation }) {
