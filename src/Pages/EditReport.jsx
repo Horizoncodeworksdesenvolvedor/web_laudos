@@ -118,7 +118,11 @@ export default function EditReport() {
       return;
     }
 
-    await updateMutation.mutateAsync({ status: 'completed' });
+    // ADICIONADO: Agora salvamos a data de conclusão junto com o status
+    await updateMutation.mutateAsync({ 
+      status: 'completed',
+      completed_date: new Date().toISOString() 
+    });
   };
 
   if (isLoading) {
