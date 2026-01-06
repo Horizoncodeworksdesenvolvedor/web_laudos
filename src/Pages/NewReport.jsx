@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl, maskDocument, maskRG, isValidCPF, isValidCNPJ } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQueryClient } from '@tanstack/react-query'; // Importação adicionada
+import { useQueryClient } from '@tanstack/react-query'; // Importação do cliente de cache
 import { 
   ArrowLeft, ArrowRight, Building2, MapPin, Calendar, 
   Loader2, User, Save, Home, Building, ClipboardList 
@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function NewReport() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient(); // Inicialização do cliente de cache
+  const queryClient = useQueryClient(); // Inicialização do cliente
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('editId'); 
   
@@ -63,6 +63,7 @@ export default function NewReport() {
                         client_name: report.client_name || '',
                         client_document: report.client_document || '',
                         address: report.address || '',
+                        // Ajuste de fuso horário para o input date
                         inspection_date: report.inspection_date ? report.inspection_date.split('T')[0] : '',
                         engineer_name: report.engineer_name || '',
                         engineer_document: report.engineer_document || '',
@@ -118,9 +119,7 @@ export default function NewReport() {
       setIsLoadingCep(true);
       try {
         const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${value}`);
-        
         if (!response.ok) throw new Error("CEP não encontrado");
-        
         const data = await response.json();
         
         setAddressDetails(prev => ({
@@ -147,19 +146,8 @@ export default function NewReport() {
   const validateClientDocument = () => {
     const doc = formData.client_document.replace(/\D/g, '');
     if (!doc) return; 
-
-    let isValid = false;
-    if (doc.length > 11) isValid = isValidCNPJ(doc);
-    else if (doc.length === 11) isValid = isValidCPF(doc);
-    else {
-        setErrors(prev => ({...prev, client_document: 'Documento incompleto'}));
-        return;
-    }
-
-    setErrors(prev => ({
-        ...prev,
-        client_document: isValid ? '' : 'Documento inválido'
-    }));
+    let isValid = doc.length > 11 ? isValidCNPJ(doc) : isValidCPF(doc);
+    setErrors(prev => ({ ...prev, client_document: isValid ? '' : 'Documento inválido' }));
   };
 
   const validateEngineerDocument = () => {
@@ -168,28 +156,14 @@ export default function NewReport() {
         setErrors(prev => ({ ...prev, engineer_document: '' }));
         return;
     }
-
-    if (doc.length < 5) {
-        setErrors(prev => ({ ...prev, engineer_document: 'Documento muito curto' }));
-    } 
-    else if (doc.length === 11) {
+    if (doc.length === 11) {
         const isValid = isValidCPF(doc);
-        setErrors(prev => ({
-            ...prev,
-            engineer_document: isValid ? '' : 'CPF inválido'
-        }));
-    } 
-    else if (doc.length === 9) {
-        setErrors(prev => ({ ...prev, engineer_document: '' }));
-    }
-    else {
-        setErrors(prev => ({ ...prev, engineer_document: 'Verifique a quantidade de dígitos' }));
+        setErrors(prev => ({ ...prev, engineer_document: isValid ? '' : 'CPF inválido' }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (errors.client_document || errors.engineer_document) {
         alert("Corrija os erros nos documentos antes de continuar.");
         return;
@@ -199,11 +173,10 @@ export default function NewReport() {
 
     try {
       setIsProcessing(true);
-      
       if (editId) {
           await base44.entities.TechnicalReport.update(editId, formData);
           
-          // VACINA: Invalida o cache para forçar o recarregamento dos novos dados
+          // VACINA: Invalida o cache para atualizar a tela de edição imediatamente
           queryClient.invalidateQueries({ queryKey: ['report', editId] });
           queryClient.invalidateQueries({ queryKey: ['reports'] });
 
@@ -214,16 +187,10 @@ export default function NewReport() {
             items: [],
             status: 'draft'
           });
-
-          if (report && report.id) {
-            navigate(createPageUrl(`EditReport?id=${report.id}`));
-          } else {
-            alert("Erro ao criar relatório.");
-          }
+          if (report && report.id) navigate(createPageUrl(`EditReport?id=${report.id}`));
       }
     } catch (error) {
       console.error("Erro ao processar:", error);
-      alert("Erro ao processar dados.");
     } finally {
         setIsProcessing(false);
     }
@@ -254,17 +221,16 @@ export default function NewReport() {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         <Card className="bg-white shadow-lg border-0">
-          <CardContent className="p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+          <CardContent className="p-5 md:p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 border-b pb-2 flex items-center gap-2">
-                  <Building2 className="w-5 h-5" />
-                  Dados do Cliente
+                  <Building2 className="w-5 h-5" /> Dados do Cliente
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-slate-700 font-medium mb-2 block">Nome do Cliente</Label>
+                    <Label className="text-slate-700 font-medium mb-1.5 block">Nome do Cliente</Label>
                     <Input
                       value={formData.client_name}
                       onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
@@ -274,7 +240,7 @@ export default function NewReport() {
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-700 font-medium mb-2 block">CPF ou CNPJ</Label>
+                    <Label className="text-slate-700 font-medium mb-1.5 block">CPF ou CNPJ</Label>
                     <Input
                       value={formData.client_document}
                       onChange={(e) => {
@@ -292,79 +258,97 @@ export default function NewReport() {
                   <div className="space-y-4">
                     {editId ? (
                         <div key="edit-address-view" className="animate-in fade-in">
-                            <Label className="text-slate-700 font-medium mb-2 block">Endereço Completo</Label>
+                            <Label className="text-slate-700 font-medium mb-1.5 block">Endereço Completo</Label>
                             <Input
                                 value={formData.address}
                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 className="h-12 text-base text-slate-900 bg-white"
                             />
-                            <p className="text-xs text-slate-500 mt-1">Edite o texto do endereço conforme necessário.</p>
                         </div>
                     ) : (
                         <div key="create-address-view" className="space-y-4 animate-in fade-in">
                             <div className="space-y-2">
                                 <Label className="text-slate-700 font-medium block">Tipo de Imóvel</Label>
                                 <div className="grid grid-cols-2 gap-3">
-                                <div 
-                                    onClick={() => setPropertyType('house')}
-                                    className={`cursor-pointer border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 transition-all ${
-                                    propertyType === 'house' 
-                                        ? 'border-slate-800 bg-slate-50 text-slate-900' 
-                                        : 'border-slate-200 hover:border-slate-300 text-slate-500'
-                                    }`}
-                                >
-                                    <Home className="w-6 h-6" />
-                                    <span className="font-semibold text-sm">Casa / Comercial</span>
-                                </div>
-                                <div 
-                                    onClick={() => setPropertyType('apartment')}
-                                    className={`cursor-pointer border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 transition-all ${
-                                    propertyType === 'apartment' 
-                                        ? 'border-slate-800 bg-slate-50 text-slate-900' 
-                                        : 'border-slate-200 hover:border-slate-300 text-slate-500'
-                                    }`}
-                                >
-                                    <Building className="w-6 h-6" />
-                                    <span className="font-semibold text-sm">Apartamento</span>
-                                </div>
+                                  <div 
+                                      onClick={() => setPropertyType('house')}
+                                      className={`cursor-pointer border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-1 transition-all ${
+                                      propertyType === 'house' ? 'border-slate-800 bg-slate-50 text-slate-900' : 'border-slate-200 text-slate-500'
+                                      }`}
+                                  >
+                                      <Home className="w-6 h-6" />
+                                      <span className="font-semibold text-xs sm:text-sm text-center">Casa / Comercial</span>
+                                  </div>
+                                  <div 
+                                      onClick={() => setPropertyType('apartment')}
+                                      className={`cursor-pointer border-2 rounded-lg p-3 flex flex-col items-center justify-center gap-1 transition-all ${
+                                      propertyType === 'apartment' ? 'border-slate-800 bg-slate-50 text-slate-900' : 'border-slate-200 text-slate-500'
+                                      }`}
+                                  >
+                                      <Building className="w-6 h-6" />
+                                      <span className="font-semibold text-xs sm:text-sm text-center">Apartamento</span>
+                                  </div>
                                 </div>
                             </div>
 
+                            {/* Detalhes do Apto: grid responsivo */}
                             {propertyType === 'apartment' && (
-                                <div className="grid grid-cols-3 gap-3 animate-in fade-in slide-in-from-top-2">
-                                <div>
-                                    <Label className="text-xs text-slate-500 font-semibold uppercase mb-1 block">Bloco / Torre</Label>
-                                    <Input value={apartmentDetails.block} onChange={(e) => setApartmentDetails({...apartmentDetails, block: e.target.value})} placeholder="Ex: A" className="h-10 bg-white" />
-                                </div>
-                                <div>
-                                    <Label className="text-xs text-slate-500 font-semibold uppercase mb-1 block">Andar</Label>
-                                    <Input value={apartmentDetails.floor} onChange={(e) => setApartmentDetails({...apartmentDetails, floor: e.target.value})} placeholder="Ex: 12" className="h-10 bg-white" />
-                                </div>
-                                <div>
-                                    <Label className="text-xs text-slate-500 font-semibold uppercase mb-1 block">Apto / Unid</Label>
-                                    <Input value={apartmentDetails.unit} onChange={(e) => setApartmentDetails({...apartmentDetails, unit: e.target.value})} placeholder="Ex: 124" className="h-10 bg-white" />
-                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-in fade-in slide-in-from-top-2">
+                                  <div>
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Bloco / Torre</Label>
+                                      <Input value={apartmentDetails.block} onChange={(e) => setApartmentDetails({...apartmentDetails, block: e.target.value})} placeholder="Ex: A" className="h-10 bg-white" />
+                                  </div>
+                                  <div>
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Andar</Label>
+                                      <Input value={apartmentDetails.floor} onChange={(e) => setApartmentDetails({...apartmentDetails, floor: e.target.value})} placeholder="Ex: 12" className="h-10 bg-white" />
+                                  </div>
+                                  <div>
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Apto / Unid</Label>
+                                      <Input value={apartmentDetails.unit} onChange={(e) => setApartmentDetails({...apartmentDetails, unit: e.target.value})} placeholder="Ex: 124" className="h-10 bg-white" />
+                                  </div>
                                 </div>
                             )}
 
                             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-4">
                                 <Label className="text-slate-700 font-bold flex items-center gap-2"><MapPin className="w-4 h-4"/> Localização</Label>
-                                <div>
-                                    <Label className="text-xs text-slate-500 font-semibold uppercase mb-1 block">Condomínio (Opcional)</Label>
-                                    <Input value={addressDetails.condominium} onChange={(e) => setAddressDetails({...addressDetails, condominium: e.target.value})} className="h-10 bg-white" />
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">CEP</Label>
+                                      <Input value={addressDetails.cep} onChange={handleCepChange} maxLength={9} className="h-10 bg-white" />
+                                  </div>
+                                  <div>
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Condomínio (Opcional)</Label>
+                                      <Input value={addressDetails.condominium} onChange={(e) => setAddressDetails({...addressDetails, condominium: e.target.value})} className="h-10 bg-white" />
+                                  </div>
                                 </div>
-                                <div className="relative">
-                                    <Label className="text-xs text-slate-500 font-semibold uppercase mb-1 block">CEP</Label>
-                                    <Input value={addressDetails.cep} onChange={handleCepChange} maxLength={9} className="h-10 bg-white" />
+
+                                {/* Logradouro e Número: responsivo */}
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                    <div className="sm:col-span-3">
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Logradouro</Label>
+                                      <Input value={addressDetails.street} onChange={(e)=>setAddressDetails({...addressDetails, street:e.target.value})} className="h-10 bg-white"/>
+                                    </div>
+                                    <div className="sm:col-span-1">
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Número</Label>
+                                      <Input id="address-number" value={addressDetails.number} onChange={(e)=>setAddressDetails({...addressDetails, number:e.target.value})} className="h-10 bg-white"/>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-4 gap-3">
-                                    <div className="col-span-3"><Label className="text-xs">Logradouro</Label><Input value={addressDetails.street} onChange={(e)=>setAddressDetails({...addressDetails, street:e.target.value})} className="h-10 bg-white"/></div>
-                                    <div className="col-span-1"><Label className="text-xs">Número</Label><Input id="address-number" value={addressDetails.number} onChange={(e)=>setAddressDetails({...addressDetails, number:e.target.value})} className="h-10 bg-white"/></div>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    <div className="col-span-2"><Label className="text-xs">Bairro</Label><Input value={addressDetails.neighborhood} onChange={(e)=>setAddressDetails({...addressDetails, neighborhood:e.target.value})} className="h-10 bg-white"/></div>
-                                    <div className="col-span-1"><Label className="text-xs">Cidade</Label><Input value={addressDetails.city} onChange={(e)=>setAddressDetails({...addressDetails, city:e.target.value})} className="h-10 bg-white"/></div>
-                                    <div className="col-span-1"><Label className="text-xs">UF</Label><Input value={addressDetails.state} onChange={(e)=>setAddressDetails({...addressDetails, state:e.target.value})} maxLength={2} className="h-10 bg-white uppercase"/></div>
+
+                                {/* Bairro, Cidade e UF: responsivo */}
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                    <div className="sm:col-span-2">
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Bairro</Label>
+                                      <Input value={addressDetails.neighborhood} onChange={(e)=>setAddressDetails({...addressDetails, neighborhood:e.target.value})} className="h-10 bg-white"/>
+                                    </div>
+                                    <div className="sm:col-span-1">
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">Cidade</Label>
+                                      <Input value={addressDetails.city} onChange={(e)=>setAddressDetails({...addressDetails, city:e.target.value})} className="h-10 bg-white"/>
+                                    </div>
+                                    <div className="sm:col-span-1">
+                                      <Label className="text-[10px] text-slate-500 font-bold uppercase mb-1 block">UF</Label>
+                                      <Input value={addressDetails.state} onChange={(e)=>setAddressDetails({...addressDetails, state:e.target.value})} maxLength={2} className="h-10 bg-white uppercase"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -373,10 +357,10 @@ export default function NewReport() {
                 </div>
               </div>
 
+              {/* Dados do Engenheiro: grid responsivo */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 border-b pb-2 flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Dados do Engenheiro
+                  <User className="w-5 h-5" /> Dados do Engenheiro
                 </h3>
                 <div className="space-y-4">
                   <Input
@@ -386,17 +370,14 @@ export default function NewReport() {
                       className="h-12 text-base text-slate-900"
                       required
                   />
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                         value={formData.engineer_document}
                         onChange={(e) => {
                             const val = e.target.value;
                             const clean = val.replace(/\D/g, '');
-                            let masked = val;
-                            if (clean.length > 9) masked = maskDocument(val); 
-                            else masked = maskRG(val); 
+                            let masked = clean.length > 9 ? maskDocument(val) : maskRG(val); 
                             setFormData({ ...formData, engineer_document: masked });
-                            if(errors.engineer_document) setErrors({...errors, engineer_document: ''});
                         }}
                         onBlur={validateEngineerDocument}
                         placeholder="CPF ou RG"
@@ -414,14 +395,11 @@ export default function NewReport() {
 
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 border-b pb-2 flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5" />
-                  Detalhes da Vistoria
+                  <ClipboardList className="w-5 h-5" /> Detalhes da Vistoria
                 </h3>
-                
                 <div>
-                    <Label className="text-slate-700 font-medium mb-2 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                    Data da Vistoria
+                    <Label className="text-slate-700 font-medium mb-1.5 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-slate-400" /> Data da Vistoria
                     </Label>
                     <Input
                     type="date"
@@ -441,7 +419,7 @@ export default function NewReport() {
                   {isProcessing ? (
                     <span className="flex items-center justify-center">
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {editId ? 'Salvando Alterações...' : 'Criando...'}
+                      {editId ? 'Salvando...' : 'Criando...'}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center">
