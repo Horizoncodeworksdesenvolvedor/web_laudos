@@ -3,23 +3,38 @@ import { Camera, Image, X, Loader2, Plus } from 'lucide-react';
 
 export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploading, compact = false }) {
   const fileInputRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false); // Estado para o feedback visual de drag & drop
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-    e.target.value = ''; 
+  // Função centralizada para processar múltiplos ficheiros
+  const processFiles = async (files) => {
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (validFiles.length === 0) return;
+
+    try {
+      // Comprime todas as imagens selecionadas em paralelo
+      const compressedFiles = await Promise.all(
+        validFiles.map(file => compressImage(file))
+      );
+      
+      // Se for o modo compacto (dentro de uma galeria), envia o array completo
+      // Se for um upload único, envia apenas a primeira foto
+      if (compact) {
+        onPhotoChange(compressedFiles);
+      } else {
+        onPhotoChange(compressedFiles[0]);
+      }
+    } catch (error) {
+      console.error("Erro ao processar imagens:", error);
+      alert("Ocorreu um erro ao processar as imagens.");
+    }
   };
 
-  // Função centralizada para processar o ficheiro (seja por clique ou drag & drop)
-  const processFile = async (file) => {
-    if (!file.type.startsWith('image/')) {
-        alert("Por favor, selecione apenas imagens.");
-        return;
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      processFiles(e.target.files);
+      // Limpa o valor para permitir selecionar os mesmos ficheiros se necessário
+      e.target.value = ''; 
     }
-    const compressedFile = await compressImage(file);
-    onPhotoChange(compressedFile);
   };
 
   // Lógica de Drag & Drop
@@ -36,10 +51,8 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-        processFile(file);
+    if (e.dataTransfer.files) {
+      processFiles(e.dataTransfer.files);
     }
   };
 
@@ -88,6 +101,9 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        // Ativa seleção múltipla apenas quando compact (galeria) for true
+        multiple={compact} 
+        // capture="environment" foi removido para permitir escolha entre Câmera e Galeria no mobile
         onChange={handleFileChange}
         className="hidden"
       />
@@ -130,7 +146,7 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
             <>
                 <Plus className={`w-6 h-6 ${isDragging ? 'text-blue-500' : 'text-slate-400'}`} />
                 <span className={`text-xs font-medium ${isDragging ? 'text-blue-600' : 'text-slate-400'}`}>
-                    {isDragging ? 'Solte para adicionar' : 'Add Foto'}
+                    {isDragging ? 'Solte para adicionar' : 'Add Fotos'}
                 </span>
             </>
           ) : (
@@ -145,11 +161,11 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
                 </div>
                 <div className="text-center px-4">
                   <p className={`text-sm font-medium ${isDragging ? 'text-blue-600' : ''}`}>
-                    {isDragging ? 'Solte a imagem aqui' : 'Tirar foto ou selecionar da galeria'}
+                    {isDragging ? 'Solte as imagens aqui' : 'Tirar foto ou selecionar da galeria'}
                   </p>
-                  {!isDragging && (
-                    <p className="text-xs text-slate-400 mt-1">ou arraste e solte o ficheiro aqui</p>
-                  )}
+                  <p className="text-xs text-slate-400 mt-1">
+                    {compact ? 'Selecione uma ou várias fotos' : 'ou arraste e solte os ficheiros aqui'}
+                  </p>
                 </div>
             </>
           )}
