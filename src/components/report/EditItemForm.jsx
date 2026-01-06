@@ -49,8 +49,15 @@ export default function EditItemForm({ item, onSave, onCancel }) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `Atue como Perito em Engenharia Diagnóstica. Transforme a observação em texto técnico profissional. 
-          REGRAS: 1. Direto e objetivo. 2. Foco em Anomalia, Causa e Reparo. 3. Máximo 10 frases. 4. Responda APENAS com o texto final. TEXTO: "${informalText}"`
+          prompt: `Atue como Perito em Engenharia Diagnóstica (Estilo Telegram). 
+          Transforme a observação em um parágrafo técnico ULTRA-CONCISO.
+          REGRAS RÍGIDAS:
+          1. Máximo de 3 a 4 frases curtas.
+          2. Formato: [Anomalia] + [Causa Provável] + [Método de Reparo].
+          3. Proibido introduções, conclusões ou saudações.
+          4. Use linguagem direta e seca. Sem "encher linguiça".
+          5. Responda APENAS com o texto técnico final.
+          TEXTO: "${informalText}"`
         });
         if (response?.technical_text) return response.technical_text;
       } catch (error) {
@@ -219,3 +226,4 @@ export default function EditItemForm({ item, onSave, onCancel }) {
     </form>
   );
 }
+
