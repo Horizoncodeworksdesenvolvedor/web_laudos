@@ -89,6 +89,12 @@ export default function ReportPreview({ report, fullHistory = [] }) {
   if (!report) return null;
 
   const today = new Date();
+
+  // NOVA LÓGICA DE DATA:
+  // Enquanto for rascunho, mostra hoje. Após finalizar, usa a data de conclusão gravada.
+  const issueDate = report.status === 'completed' 
+    ? (report.completed_date || report.created_date || today) 
+    : today;
   
   const contentPadding = "px-2 py-6 sm:px-12 sm:py-8 print:p-0"; 
 
@@ -182,7 +188,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
         }
       `}</style>
 
-      {/* RODAPÉ FIXO */}
+      {/* RODAPÉ FIXO - Atualizado para issueDate */}
       <div className="hidden print:flex report-footer-fixed">
         <div>
             <span className="font-bold uppercase text-slate-700">{report.client_name}</span>
@@ -190,7 +196,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
             Ref: #{report.id?.substring(0,8).toUpperCase()}
         </div>
         <div>
-            {format(today, "dd/MM/yyyy", { locale: ptBR })}
+            {format(new Date(issueDate), "dd/MM/yyyy", { locale: ptBR })}
             <span className="mx-2">|</span>
             Eng. {report.engineer_name.split(' ')[0]}
         </div>
@@ -237,10 +243,8 @@ export default function ReportPreview({ report, fullHistory = [] }) {
 
         <div className="mt-auto pb-8 sm:pb-12 print:pb-0">
             <p className="text-base sm:text-lg font-bold text-slate-800 uppercase tracking-wide">
-                {/* Usamos a data da vistoria como base para a data da capa, travada ao meio-dia */}
-                São Paulo, {report.inspection_date 
-                    ? format(new Date(report.inspection_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {/* Data da capa agora baseada na emissão/hoje */}
+                São Paulo, {format(new Date(issueDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </p>
         </div>
       </div>
@@ -282,6 +286,12 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                         {revisionsList.map((rev, index) => {
                             const revNumber = String(index).padStart(2, '0');
                             const isReinspection = index > 0;
+                            
+                            // LÓGICA DE DATA DINÂMICA NA TABELA:
+                            const revDate = rev.status === 'completed' 
+                                ? (rev.completed_date || rev.created_date || today) 
+                                : today;
+
                             return (
                                 <tr key={rev.id || index}>
                                     <td className="border border-slate-300 px-4 py-3 text-center font-bold">{revNumber}</td>
@@ -289,7 +299,7 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                                         {isReinspection ? 'Emissão de Revistoria Técnica' : 'Emissão Inicial para Aprovação'}
                                     </td>
                                     <td className="border border-slate-300 px-4 py-3 text-center">
-                                        {format(new Date(rev.created_date || today), "dd/MM/yyyy")}
+                                        {format(new Date(revDate), "dd/MM/yyyy")}
                                     </td>
                                     <td className="border border-slate-300 px-4 py-3 font-medium uppercase text-xs">
                                         {rev.engineer_name?.split(' ').slice(0, 2).join(' ')}
@@ -362,7 +372,6 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                         <span className="text-xs uppercase font-bold tracking-widest">Data da Vistoria:</span>
                     </div>
                     <span className="font-bold text-base sm:text-lg">
-                    {/* Adicionamos 'T12:00:00' para travar a interpretação da data ao meio-dia */}
                     {report.inspection_date ? format(new Date(report.inspection_date + 'T12:00:00'), "dd/MM/yyyy") : '--/--/----'}
                     </span>
                 </div>
@@ -445,10 +454,6 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                              </>
                         )}
                     </div>
-                    
-                    <p className="text-right text-xs text-slate-400 mt-2 font-mono">
-                        Total de itens inspecionados: {riskStats.total}
-                    </p>
                 </div>
             )}
 
@@ -638,18 +643,16 @@ export default function ReportPreview({ report, fullHistory = [] }) {
                 
                 <div className="w-full mx-auto text-center print:pb-20 pt-32 avoid-break">
     
-                    {/* NOVO BLOCO: Exibe a assinatura se o URL existir */}
+                    {/* Exibe a assinatura se o URL existir */}
                     {report.engineer_signature_url ? (
                         <div className="mb-6 mx-auto w-full max-w-[12cm] print:mb-4">
                         <img 
                             src={optimizeCloudinaryUrl(report.engineer_signature_url)} 
                             alt="Assinatura do Engenheiro"
-                            // Adicionamos uma borda de baixo para simular a linha, mas é a imagem
                             className="w-full h-auto max-h-[50mm] object-contain border-b-2 border-slate-900 print:border-black pb-2"
                             />
                         </div>
                     ) : (
-                        // Linha padrão se não houver assinatura digital (Fallback)
                         <div className="h-px bg-slate-900 w-[12cm] mx-auto mb-6 print:bg-black"></div>
                     )}
                     
@@ -664,5 +667,3 @@ export default function ReportPreview({ report, fullHistory = [] }) {
     </div>
   );
 }
-
-
