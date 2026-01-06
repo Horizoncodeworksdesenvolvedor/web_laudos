@@ -1,17 +1,46 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Camera, Image, X, Loader2, Plus } from 'lucide-react';
 
-// Adicionei a prop 'compact'
 export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploading, compact = false }) {
   const fileInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false); // Estado para o feedback visual de drag & drop
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    processFile(file);
+    e.target.value = ''; 
+  };
+
+  // Função centralizada para processar o ficheiro (seja por clique ou drag & drop)
+  const processFile = async (file) => {
+    if (!file.type.startsWith('image/')) {
+        alert("Por favor, selecione apenas imagens.");
+        return;
+    }
     const compressedFile = await compressImage(file);
     onPhotoChange(compressedFile);
-    // Limpa o input para permitir selecionar a mesma foto se necessário
-    e.target.value = ''; 
+  };
+
+  // Lógica de Drag & Drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+        processFile(file);
+    }
   };
 
   const compressImage = (file) => {
@@ -59,7 +88,6 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
         className="hidden"
       />
@@ -88,26 +116,41 @@ export default function PhotoUpload({ photo, onPhotoChange, onRemove, isUploadin
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={`
-            border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center 
-            text-slate-500 hover:border-slate-400 hover:bg-slate-50 transition-all bg-white
+            border-2 border-dashed rounded-lg flex flex-col items-center justify-center 
+            transition-all bg-white
+            ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50'}
             ${compact ? 'w-full h-full min-h-[100px]' : 'w-full h-48 gap-3'}
           `}
         >
           {compact ? (
-            // Versão Compacta (para grade)
             <>
-                <Plus className="w-6 h-6 text-slate-400" />
-                <span className="text-xs font-medium text-slate-400">Add Foto</span>
+                <Plus className={`w-6 h-6 ${isDragging ? 'text-blue-500' : 'text-slate-400'}`} />
+                <span className={`text-xs font-medium ${isDragging ? 'text-blue-600' : 'text-slate-400'}`}>
+                    {isDragging ? 'Solte para adicionar' : 'Add Foto'}
+                </span>
             </>
           ) : (
-            // Versão Normal (Grande)
             <>
                 <div className="flex gap-4">
-                    <div className="p-3 bg-slate-100 rounded-full"><Camera className="w-6 h-6" /></div>
-                    <div className="p-3 bg-slate-100 rounded-full"><Image className="w-6 h-6" /></div>
+                    <div className={`p-3 rounded-full ${isDragging ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                        <Camera className={`w-6 h-6 ${isDragging ? 'text-blue-600' : ''}`} />
+                    </div>
+                    <div className={`p-3 rounded-full ${isDragging ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                        <Image className={`w-6 h-6 ${isDragging ? 'text-blue-600' : ''}`} />
+                    </div>
                 </div>
-                <span className="text-sm font-medium">Tirar foto ou selecionar</span>
+                <div className="text-center px-4">
+                  <p className={`text-sm font-medium ${isDragging ? 'text-blue-600' : ''}`}>
+                    {isDragging ? 'Solte a imagem aqui' : 'Tirar foto ou selecionar da galeria'}
+                  </p>
+                  {!isDragging && (
+                    <p className="text-xs text-slate-400 mt-1">ou arraste e solte o ficheiro aqui</p>
+                  )}
+                </div>
             </>
           )}
         </button>
