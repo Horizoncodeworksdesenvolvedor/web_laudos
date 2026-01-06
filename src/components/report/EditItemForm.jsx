@@ -12,22 +12,22 @@ import MultiPhotoUpload from './MultiPhotoUpload';
 // Títulos mais frequentes extraídos do checklist do engenheiro
 const commonTitles = [
   "Azulejo/Revestimento",
-  "Pisos",
-  "Forro de gesso",
-  "Pintura",
   "Esquadria de aluminio",
-  "Portas",
-  "Tomadas",
-  "Interruptores",
-  "Ponto de luz",
-  "Vaso sanitário",
-  "Torneira",
-  "Sifão",
-  "Válvulas",
   "Flexíveis",
+  "Forro de gesso",
+  "Interruptores",
+  "Pintura",
+  "Pisos",
+  "Ponto de luz",
+  "Portas",
   "Ralos",
   "Registro",
+  "Sifão",
   "Tampo da pia",
+  "Tomadas",
+  "Torneira",
+  "Válvulas",
+  "Vaso sanitário",
   "Vidros"
 ];
 
