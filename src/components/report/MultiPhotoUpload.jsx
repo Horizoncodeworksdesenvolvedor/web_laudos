@@ -1,10 +1,14 @@
 import React from 'react';
-import { Camera, X, Plus } from 'lucide-react';
+import { X } from 'lucide-react';
 import PhotoUpload from './PhotoUpload';
 
 export default function MultiPhotoUpload({ photos, onPhotosChange, isUploading }) {
-  const handleAddPhoto = (newPhoto) => {
-    onPhotosChange([...photos, newPhoto]);
+  
+  const handleAddPhoto = (newPhotos) => {
+    // CORREÇÃO: Verifica se recebemos um array (várias fotos) ou apenas uma.
+    // Usamos o "spread operator" (...) para adicionar todas as novas fotos individualmente na lista.
+    const photosToAdd = Array.isArray(newPhotos) ? newPhotos : [newPhotos];
+    onPhotosChange([...photos, ...photosToAdd]);
   };
 
   const handleRemovePhoto = (indexToRemove) => {
@@ -12,7 +16,7 @@ export default function MultiPhotoUpload({ photos, onPhotosChange, isUploading }
   };
 
   return (
-    <div className="space-y-4 mb-6"> {/* Adicionei mb-6 para dar espaço embaixo */}
+    <div className="space-y-4 mb-6">
       
       {/* Grade de Fotos Existentes + Botão de Adicionar */}
       <div className="grid grid-cols-3 gap-3">
@@ -36,13 +40,13 @@ export default function MultiPhotoUpload({ photos, onPhotosChange, isUploading }
           </div>
         ))}
 
-        {/* Botão para Adicionar Nova Foto (Fica como um quadrado na grade) */}
+        {/* Botão para Adicionar Nova Foto */}
         <div className="aspect-square">
             <PhotoUpload 
                 photo={null} 
                 onPhotoChange={handleAddPhoto} 
                 isUploading={isUploading}
-                compact={true} // Vamos usar um modo compacto
+                compact={true} 
             />
         </div>
       </div>
