@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { FileText, Upload, Trash2, Loader2, CheckCircle, FileType } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,16 @@ import { base44 } from '@/api/base44Client';
 export default function ArtUploadSection({ report, onUpdate }) {
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // 2. ADICIONAR um estado local para o input
+  const [localProtocol, setLocalProtocol] = useState(report.art_protocol || '');
+
+  // 3. ADICIONAR este efeito para sincronizar o local com o banco (caso o laudo mude ou seja limpo)
+  useEffect(() => {
+    if (report.art_protocol !== localProtocol) {
+      setLocalProtocol(report.art_protocol || '');
+    }
+  }, [report.art_protocol]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -29,7 +39,7 @@ export default function ArtUploadSection({ report, onUpdate }) {
   const isPdf = report.art_url?.toLowerCase().endsWith('.pdf');
   
   // VERIFICA SE JÁ ESTÁ PREENCHIDO
-  const hasProtocol = report.art_protocol && report.art_protocol.trim().length > 0;
+  const hasProtocol = localProtocol && localProtocol.trim().length > 0;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-8">
@@ -69,7 +79,10 @@ export default function ArtUploadSection({ report, onUpdate }) {
                     <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => onUpdate({ art_url: null, art_protocol: '' })}
+                        onClick={() => {
+                            setLocalProtocol(''); // LIMPA o estado local também
+                            onUpdate({ art_url: null, art_protocol: '' });
+                        }}
                         className="shadow-md"
                     >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -98,8 +111,9 @@ export default function ArtUploadSection({ report, onUpdate }) {
                 </Label>
                 
                 <Input 
-                    value={report.art_protocol || ''}
-                    onChange={(e) => onUpdate({ art_protocol: e.target.value })}
+                    value={localProtocol}
+                    onChange={(e) => setLocalProtocol(e.target.value)}
+                    onBlur={() => onUpdate({ art_protocol: localProtocol })}
                     placeholder="Digite o número da ART..."
                     className={`bg-white transition-colors ${
                         hasProtocol 
@@ -147,4 +161,5 @@ export default function ArtUploadSection({ report, onUpdate }) {
       )}
     </div>
   );
+
 }
