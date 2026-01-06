@@ -1,20 +1,20 @@
 import React from 'react';
 
 const COMMON_LOCATIONS = [
-  'Hall de Entrada',
-  'Cozinha',
+  'Área de Serviço/Lavanderia',
   'Banheiro Social',
   'Banheiro Suíte',
-  'Sala de Estar',
+  'Cobertura',
+  'Corredor',
+  'Cozinha',
+  'Fachada',
+  'Garagem',
+  'Hall de Entrada',
+  'Piscina',
   'Quarto 1',
   'Quarto 2',
-  'Área de Serviço',
-  'Garagem',
-  'Varanda',
-  'Corredor',
-  'Fachada',
-  'Cobertura',
-  'Piscina',
+  'Sacada',
+  'Sala de Estar',
   'Salão de Festas'
 ];
 
@@ -37,4 +37,5 @@ export default function LocationChips({ onSelect, selectedLocation }) {
       ))}
     </div>
   );
+
 }
