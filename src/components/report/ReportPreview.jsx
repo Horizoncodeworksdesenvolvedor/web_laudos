@@ -198,6 +198,14 @@ export default function ReportPreview({ report, fullHistory = [] }) {
 
       {/* 1. CAPA */}
       <div className={`${contentPadding} break-after min-h-[90vh] flex flex-col items-center text-center pt-8 sm:pt-10 relative print:pt-4 content-section`}>
+        
+        <div className="absolute top-4 right-4 sm:top-8 sm:right-12 print:top-0 print:right-0 text-right">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Código do Laudo</span>
+            <span className="text-sm font-mono font-black text-slate-700">
+                #{report.id?.substring(0, 8).toUpperCase()}
+            </span>
+        </div>
+        
         <div className="mb-8 sm:mb-12 print:mb-8">
             <img src="/Logo.png" alt="Logo" className="h-24 sm:h-32 w-auto object-contain mx-auto" />
         </div>
