@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl, maskDocument, maskRG, isValidCPF, isValidCNPJ } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query'; // Importação adicionada
 import { 
   ArrowLeft, ArrowRight, Building2, MapPin, Calendar, 
   Loader2, User, Save, Home, Building, ClipboardList 
@@ -13,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function NewReport() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); // Inicialização do cliente de cache
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('editId'); 
   
@@ -121,7 +123,6 @@ export default function NewReport() {
         
         const data = await response.json();
         
-        // CORREÇÃO: Mapeamento BrasilAPI (street, neighborhood, city, state)
         setAddressDetails(prev => ({
           ...prev,
           cep: value,
@@ -201,6 +202,11 @@ export default function NewReport() {
       
       if (editId) {
           await base44.entities.TechnicalReport.update(editId, formData);
+          
+          // VACINA: Invalida o cache para forçar o recarregamento dos novos dados
+          queryClient.invalidateQueries({ queryKey: ['report', editId] });
+          queryClient.invalidateQueries({ queryKey: ['reports'] });
+
           navigate(createPageUrl(`EditReport?id=${editId}`)); 
       } else {
           const report = await base44.entities.TechnicalReport.create({
@@ -283,7 +289,6 @@ export default function NewReport() {
                     {errors.client_document && <p className="text-xs text-red-500 mt-1">{errors.client_document}</p>}
                   </div>
                   
-                  {/* CORREÇÃO ERRO insertBefore: Envolvendo condicional em DIV fixa com KEY */}
                   <div className="space-y-4">
                     {editId ? (
                         <div key="edit-address-view" className="animate-in fade-in">
